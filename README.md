@@ -28,7 +28,7 @@ The project models a complete electric mobility sharing platform, allowing the m
 - 🔧 Maintenance operations
 - 👨‍🔧 Certified technicians
 
-The project includes the complete database design process, from requirements analysis to implementation in PostgreSQL, together with a C application that interacts with the database using **libpq**. :contentReference[oaicite:1]{index=1}
+The project includes the complete database design process, from requirements analysis to implementation in PostgreSQL, together with a C application that interacts with the database using **libpq**.
 
 ---
 
@@ -60,7 +60,7 @@ The system manages:
 - Battery monitoring
 - Payment receipts
 
-The database has been designed to ensure data consistency through foreign keys, check constraints, domains, triggers and business rules. :contentReference[oaicite:2]{index=2}
+The database has been designed to ensure data consistency through foreign keys, check constraints, domains, triggers and business rules.
 
 ---
 
@@ -106,7 +106,7 @@ The SQL implementation includes:
 - Triggers
 - Analytical queries
 
-The project also implements optimization techniques such as indexes and planned redundancy to improve query performance. :contentReference[oaicite:3]{index=3}
+The project also implements optimization techniques such as indexes and planned redundancy to improve query performance.
 
 ---
 
@@ -120,7 +120,6 @@ Some of the implemented queries include:
 - Vehicles currently under maintenance
 - Battery usage ranking
 
-:contentReference[oaicite:4]{index=4}
 
 ---
 

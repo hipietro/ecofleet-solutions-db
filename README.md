@@ -155,5 +155,5 @@ The objective was to design, implement and optimize a relational database starti
 
 # 👨‍💻 Authors
 
-- Pietro Leonardo Acampora
-- Luca Artinian
+- Pietro Leonardo Acampora @hipietro
+- Luca Artinian @ArtiLuca

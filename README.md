@@ -1,11 +1,12 @@
-# ⚡ EcoFleet Solutions
+# ⚡ EcoFleet Solutions — Electric Mobility Platform
 
 <p align="center">
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![C](https://img.shields.io/badge/C-A8B9CC?style=for-the-badge&logo=c&logoColor=black)
-![SQL](https://img.shields.io/badge/SQL-003B57?style=for-the-badge)
-![Database Design](https://img.shields.io/badge/ER%20Modeling-2E8B57?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white)
+![Microsoft Azure](https://img.shields.io/badge/Microsoft_Azure-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
 ![University Project](https://img.shields.io/badge/University-Project-blue?style=for-the-badge)
 
 </p>
@@ -14,146 +15,108 @@
 
 ## 📖 Overview
 
-**EcoFleet Solutions** is a PostgreSQL database project developed for the **Database Systems** course.
+**EcoFleet Solutions** is a short-term electric mobility sharing platform (inspired by services like MILES / ShareNow).
 
-The project models a complete electric mobility sharing platform, allowing the management of:
+Originally developed as a database design project for the **Database Systems** course at the **University of Padua**, the repository is evolving into a full-stack production-ready cloud application. It bridges robust relational modeling with a modern Python REST API, JWT authentication, virtual wallet credit system, and future deployment on **Microsoft Azure** (aligned with the **Azure AI-200** certification learning path).
 
-- 🚗 Electric vehicles
-- 🔋 Batteries
-- 👥 Private and corporate customers
-- 🏢 Corporate employees
-- ⚡ Charging stations
-- 📍 Access points
-- 📅 Rentals
-- 🔧 Maintenance operations
-- 👨‍🔧 Certified technicians
-
-The project includes the complete database design process, from requirements analysis to implementation in PostgreSQL, together with a C application that interacts with the database using **libpq**.
+The system models and manages:
+- 🚗 **Electric Fleet**: Cars, vans, scooters, and e-bikes with real-time telemetry/battery tracking.
+- ⚡ **Charging Infrastructure**: Logistic hubs, charging stations, and connector point compatibility.
+- 👥 **Customer & Corporate Ecosystem**: Private/corporate accounts, employee sub-accounts, and contract discount tiers.
+- 💳 **Virtual Wallet & Rentals**: Short-term rental lifecycle, active timer, automated cost calculation, and DB-triggered receipts.
+- 🔧 **Maintenance & Backoffice**: Certified technician assignments, repair history, and AI-driven diagnostic logs.
 
 ---
 
-# ✨ Main Features
+## 🏗️ System Architecture & Stack
 
-- Complete Entity-Relationship design
-- Logical database design
-- PostgreSQL implementation
-- Database normalization
-- Domains and constraints
-- Primary and foreign keys
-- Triggers and stored functions
-- Index optimization
-- Complex SQL queries
-- Command-line application written in C
+### **Backend & Domain Logic**
+- **Framework**: Python 3.13 + FastAPI (RESTful API, OpenAPI/Swagger docs at `/docs`)
+- **Database**: PostgreSQL 16 (Relational schema, PL/pgSQL stored procedures, triggers, custom domains)
+- **Database Driver**: `psycopg` (v3) with dictionary row factory
+- **Security & Auth**: Password hashing via `pwdlib` (`bcrypt`) and Stateless `JWT` tokens
+- **Configuration**: Environment isolation via `.env` (transitioning to Azure Key Vault)
 
----
-
-# 🏗️ Database Architecture
-
-The system manages:
-
-- Electric vehicle fleet
-- Charging infrastructure
-- Rental lifecycle
-- Maintenance scheduling
-- Corporate contracts
-- Customer management
-- Battery monitoring
-- Payment receipts
-
-The database has been designed to ensure data consistency through foreign keys, check constraints, domains, triggers and business rules.
+### **Cloud & DevOps Roadmap (Azure AI-200)**
+- **Networking**: Isolated Azure VNet, Private Subnets, and Private Endpoints
+- **Compute**: Containerized microservices using Docker & Azure Container Apps
+- **AI Integration**: Semantic search (`pgvector`) on vehicle maintenance logs via Azure OpenAI
 
 ---
 
-# 🛠️ Technologies
+## 🛠️ Technologies
 
-| Technology | Purpose |
-|------------|---------|
-| PostgreSQL | Database |
-| SQL | Database implementation |
-| C | Client application |
-| libpq | PostgreSQL client library |
+| Layer | Technology | Role |
+| :--- | :--- | :--- |
+| **Database** | PostgreSQL 16 / SQL | Schema design, domains, triggers, functions |
+| **Backend API** | Python 3.13 / FastAPI | RESTful web services, routing, validation |
+| **Security** | Bcrypt / PyJWT | Password encryption and role-based access control |
+| **Legacy Client** | C / libpq | Original CLI database client |
+| **Cloud (Target)** | Microsoft Azure | Infrastructure, VNet, Container Apps, Key Vault |
 
 ---
 
-# 📂 Repository Structure
+## 📂 Repository Structure
 
 ```text
 .
 ├── docs/
-│   └── Relazione Progetto EcoFleet.pdf
-│
+│   ├── Relazione Progetto EcoFleet.pdf
+│   └── er_diagram.png
 ├── sql/
-│   └── ecofleet.sql
-│
+│   └── ecofleet (1).sql       # Full database initialization script
 ├── src/
-│   └── C application
-│
+│   ├── database.py             # Database connection factory & env loader
+│   ├── security.py             # Bcrypt hashing & JWT token generation
+│   ├── main.py                 # FastAPI application entry point & routes
+│   └── query_all.c             # Legacy C database application
+├── .env                        # Local environment variables (gitignored)
+├── requirements.txt            # Python dependencies
 └── README.md
 ```
 
 ---
 
-# 📊 SQL Features
+## 🚀 Quick Start (Local Development)
 
-The SQL implementation includes:
+### 1. Prerequisites
+- Python 3.13+
+- PostgreSQL 16 running locally (or via Docker)
 
-- Database schema
-- Sample dataset
-- Domains
-- Constraints
-- Indexes
-- Stored functions
-- Triggers
-- Analytical queries
+### 2. Database Setup
+```bash
+createdb ecofleet
+psql -d ecofleet -f "sql/ecofleet (1).sql"
+```
 
-The project also implements optimization techniques such as indexes and planned redundancy to improve query performance.
+### 3. Backend Setup
+```bash
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
----
+# Install dependencies
+pip install -r requirements.txt
 
-# 🔍 Example Queries
+# Start FastAPI development server
+uvicorn src.main:app --reload --port 8000
+```
 
-Some of the implemented queries include:
-
-- Vehicle usage statistics
-- Total spending by private customers
-- Rental analysis by city
-- Vehicles currently under maintenance
-- Battery usage ranking
-
-
----
-
-# 📄 Documentation
-
-The complete report includes:
-
-- Requirements analysis
-- Conceptual design
-- ER Diagram
-- Logical design
-- Relational schema
-- PostgreSQL implementation
-- SQL optimization
-- Trigger design
-- C application
+Access interactive API documentation at: `http://localhost:8000/docs`
 
 ---
 
-# Entity-Relationship Diagram
+## 📊 Entity-Relationship Diagram
 
 <p align="center">
   <img src="docs/er_diagram.png" width="900">
 </p>
 
-# 🎓 Academic Context
-
-This project was developed as part of the **Database Systems** course at the **University of Padua**.
-
-The objective was to design, implement and optimize a relational database starting from a real-world scenario, following the complete database design methodology.
-
 ---
 
-# 👨‍💻 Authors
+## 👨‍💻 Authors & Academic Context
 
-- Pietro Leonardo Acampora @hipietro
-- Luca Artinian @ArtiLuca
+Developed originally for the **Database Systems** course at the **University of Padua**.
+
+- **Pietro Leonardo Acampora** - [@hipietro](https://github.com/hipietro)
+- **Luca Artinian** - [@ArtiLuca](https://github.com/ArtiLuca)

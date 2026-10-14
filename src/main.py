@@ -1,13 +1,28 @@
-from fastapi import FastAPI, HTTPException, status #fastapi è la classe principale con cui definiamo il server API, i percorsi (endpoint) e la documentazione OpenAPI/Swagger automatica
+from fastapi import FastAPI, HTTPException, status, Depends #fastapi è la classe principale con cui definiamo il server API, i percorsi (endpoint) e la documentazione OpenAPI/Swagger automatica
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import jwt
 from src.database import get_db_connection #import the main connection class
-from src.schemas import UserRegister, UserLogin, TokenResponse
-from src.security import get_password_hash, verify_password, create_access_token
+from src.schemas import UserRegister, UserLogin, TokenResponse, WalletTopup, Userprofile
+from src.security import get_password_hash, verify_password, create_access_token, SECRET_KEY, ALGORITHM
 
 app= FastAPI(
     title="Eco-Fleet Solutions API",
     description="Backend REST per la gestione della flotta aziendale e dei noleggi",
     version = "1.0.0"
 )
+
+oauth2_scheme= OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+def get_current_user(token:str=Depends(oauth2_scheme)) -> dict:
+    """extract and validate current user from JWT token"""
+    try:
+        payload= jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email:str=payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Token non valido")
+        return payload
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Token scaduto o non valido")
 
 @app.get("/health", tags=["System"])
 def health_check():
@@ -65,7 +80,7 @@ def register_user(user_data: UserRegister):
         return {"message": "Utente registrato con successo! Wallet iniziale caricato con 50.00 €"}
 
 @app.post("/api/auth/login", response_model=TokenResponse, tags=["Auth"])
-def login_user(credentials: UserLogin):
+def login_user(credentials: OAuth2PasswordRequestForm = Depends()):
     """Authenticate user credentials and return JWT token with profile info."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -73,7 +88,7 @@ def login_user(credentials: UserLogin):
                 SELECT codicefiscale, email, password_hash, ruolo, saldo_crediti 
                 FROM Cliente 
                 WHERE email = %s;
-            """, (credentials.email,))
+            """, (credentials.username,))
             user = cur.fetchone()
 
             if not user or not verify_password(credentials.password, user["password_hash"]):
@@ -99,3 +114,46 @@ def login_user(credentials: UserLogin):
                 "ruolo": user["ruolo"],
                 "saldo_crediti": user["saldo_crediti"]
             }
+
+
+@app.get("/api/auth/me", response_model=Userprofile, tags=["Auth"])
+def get_user_profile(current_user: dict = Depends(get_current_user)):
+    """fetch profile details for the currentlu authenticated user."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT codicefiscale, email, ruolo, saldo_crediti 
+                FROM Cliente 
+                WHERE email = %s;
+            """, (current_user["sub"],))
+            user = cur.fetchone()
+
+            if not user:
+                raise HTTPException(status_code=404, detail="Utente non trovato.")
+
+            return user
+
+
+@app.post("/api/auth/wallet/topup", tags=["Auth"])
+def topup_wallet(data: WalletTopup, current_user: dict = Depends(get_current_user)):
+    """Add virtual credit to the authenticated user's wallet."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE Cliente 
+                SET saldo_crediti = saldo_crediti + %s 
+                WHERE email = %s
+                RETURNING saldo_crediti;
+            """, (data.importo, current_user["sub"]))
+
+            updated_row = cur.fetchone()
+            conn.commit()
+
+            if not updated_row:
+                raise HTTPException(status_code=404, detail="Utente non trovato")
+
+            return{
+                "message": f"Ricarica di {data.importo} € effettuata con successo!",
+                "nuovo_saldo": updated_row["saldo_crediti"]
+            }
+            

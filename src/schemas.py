@@ -25,3 +25,17 @@ class TokenResponse(BaseModel):
     email:str
     ruolo:str
     saldo_crediti: Decimal
+
+
+#request schema for topping up virtual credit wallet
+class WalletTopup(BaseModel):
+    importo: Decimal = Field(..., gt=0, max_digits=6, decimal_places=2, description="amount to add to a wallet")
+
+
+#response schema for user profile
+class Userprofile(BaseModel):
+    codicefiscale: str
+    email: str
+    ruolo: str
+    saldo_crediti: Decimal
+

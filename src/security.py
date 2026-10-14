@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 #JWT vonfiguration settings
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "default_fallback_secret_key")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("FATAL ERROR: JWT_SECRET_KEY enviroment variable is missing. Application cannot start securely.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

@@ -39,3 +39,18 @@ class Userprofile(BaseModel):
     ruolo: str
     saldo_crediti: Decimal
 
+
+#response schema for fleet discovery (list of vehicles)
+class VehicleResponse(BaseModel):
+    serialeveicolo: int
+    marca:str
+    modello:str
+    targa:str | None=None
+    statooperativo: str
+    kmtotali: int
+
+
+#response schema for a single vehicle detail
+class VehicleDetailResponse(VehicleResponse):
+    #made for future, so we can add more specific fields later (ex. battery levels, hub location...)
+    pass

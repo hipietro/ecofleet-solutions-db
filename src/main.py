@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status, Depends #fastapi è la class
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 from src.database import get_db_connection #import the main connection class
-from src.schemas import UserRegister, UserLogin, TokenResponse, WalletTopup, Userprofile, VehicleResponse, VehicleDetailResponse
+from src.schemas import UserRegister, UserLogin, TokenResponse, WalletTopup, Userprofile, VehicleResponse, VehicleDetailResponse, RentalStartRequest, RentalStartResponse
 from src.security import get_password_hash, verify_password, create_access_token, SECRET_KEY, ALGORITHM
 from typing import List
 
@@ -190,3 +190,13 @@ def topup_wallet(data: WalletTopup, current_user: dict = Depends(get_current_use
 
 
 
+@app.post("/api/rentals/start", response_model=RentalStartResponse, tags["rentals"]=)
+def start_rental(request:RentalStartRequest, current_user: dict=Depends(get_current_user)):
+    """
+    avvia un nuovo noleggio
+    controlla la disponibilità del veicolo e il saldo minimo del cliente
+    """
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            #rule 1: does the client have sufficient credit?(minimum 5.00€)
+            cur.execute

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from decimal import Decimal
+from datetime import datetime
 
 #request schema for registering a new customer
 class UserRegister(BaseModel):
@@ -54,3 +55,21 @@ class VehicleResponse(BaseModel):
 class VehicleDetailResponse(VehicleResponse):
     #made for future, so we can add more specific fields later (ex. battery levels, hub location...)
     pass
+
+
+#request schema for starting a rental
+class RentalStartRequest(BaseModel):
+    veicolo: int=Field(..., description="ID of the vehicle to rent")
+    hubinizio: int = Field(..., description="Starting Hub ID")
+    stazioneinizio: int = Field(..., description="Starting Station ID")
+    puntoinizio: int = Field(..., description="Starting Access Point ID")
+
+
+#response schema for a succesfullu started rental
+class RentalStartResponse(BaseModel):
+    codicenoleggio: int
+    veicolo: int
+    dataorainizio: datetime
+    messaggio:str
+
+    

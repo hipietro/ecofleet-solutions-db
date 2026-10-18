@@ -72,4 +72,20 @@ class RentalStartResponse(BaseModel):
     dataorainizio: datetime
     messaggio:str
 
-    
+
+#request schema for stopping an active rental
+class RentalStopRequest(BaseModel):
+    codicenoleggio: int =  Field(..., description="ID of the active rental to stop")
+    hubfine: int = Field(..., description="Return Hub ID")
+    stazionefine: int = Field(..., description="Return Station ID")
+    puntofine: int = Field(..., description="Return Access Point ID")
+    km_percorsi: int = Field(..., gt=0, description="Kilometers driven during this rental")
+
+
+#response scheam for a successfully closed rental
+class RentalStopResponse(BaseModel):
+    codicenoleggio: int
+    durata_minuti: int
+    costo_totale: Decimal
+    saldo_rimanente: Decimal
+    messaggio: str

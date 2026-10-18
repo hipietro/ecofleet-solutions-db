@@ -89,3 +89,14 @@ class RentalStopResponse(BaseModel):
     costo_totale: Decimal
     saldo_rimanente: Decimal
     messaggio: str
+
+
+#response schema for fleet discovery vehicle list items
+class VehicleResponse(BaseModel):
+    serialeveicolo: int
+    marca: str
+    modello: str
+    targa: str | None = None
+    statooperativo: str
+    kmtotali: int | Decimal
+    costoorario: Decimal = Field(..., description="Hourly rate in EUR")

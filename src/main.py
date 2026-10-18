@@ -40,7 +40,7 @@ def list_vehicles(stato: str |None=None, marca:str|None=None):
         with conn.cursor() as cur:
             #base query
             query="""
-                SELECT serialeveicolo, marca, modello, targa, statooperativo, kmtotali 
+                SELECT serialeveicolo, marca, modello, targa, statooperativo, kmtotali, costoorario 
                 FROM Veicolo 
                 WHERE 1=1
             """
@@ -67,7 +67,7 @@ def get_vehicle_by_id(seriale: int):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT serialeveicolo, marca, modello, targa, statooperativo, kmtotali 
+                SELECT serialeveicolo, marca, modello, targa, statooperativo, kmtotali, costoorario 
                 FROM Veicolo 
                 WHERE serialeveicolo = %s;
             """, (seriale,))

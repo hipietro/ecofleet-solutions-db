@@ -263,13 +263,18 @@ def stop_rental(request: RentalStopRequest, current_user: dict = Depends(get_cur
     terminates an active rental, calculates the cost based on minutes elapsed,
     charges the value on the credit and updates the status of the vehicle.
     """
+
+    #ixed unlock fee in EUR
+    UNLOCK_FEE = Decimal("1.00")
+
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             # 1. Retrieves the user's active rental
             cur.execute("""
-                SELECT n.codicenoleggio, n.veicolo, n.dataorainizio,
+                SELECT n.codicenoleggio, n.veicolo, n.dataorainizio, v.costoorario
                        EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP(0) - n.dataorainizio))/60 AS minuti_trascorsi
                 FROM Noleggio n
+                JOIN Veicolo v ON n.veicolo = v.serialeveicolo
                 WHERE n.codicenoleggio = %s AND n.cliente = %s AND n.dataorafine IS NULL;
             """, (request.codicenoleggio, current_user["cf"]))
 
@@ -283,7 +288,9 @@ def stop_rental(request: RentalStopRequest, current_user: dict = Depends(get_cur
             
             #2 calculates minutes (minimum 1 minute) and the total cost (ex. 0.25 €/min)
             minuti=max(1, int(noleggio["minuti_trascorsi"]))
-            costo_totale = Decimal(str(round(minuti * 0.25,2)))
+            costo_al_minuto = noleggio["costoorario"]/Decimal("60.00")
+            costo_corsa=Decimal(str(round(minuti*float(costo_al_minuto), 2)))
+            costo_totale = UNLOCK_FEE + costo_corsa
 
             #3 charges the cost on the client credit
             cur.execute("""
@@ -337,5 +344,5 @@ def stop_rental(request: RentalStopRequest, current_user: dict = Depends(get_cur
                 "durata_minuti": minuti,
                 "costo_totale": costo_totale,
                 "saldo_rimanente": cliente_aggiornato["saldo_crediti"],
-                "messaggio": f"Noleggio terminato con successo! Addebitati {costo_totale} € per {minuti} minuti di corsa."
+                "messaggio": f"Noleggio terminato con successo! Addebitati {costo_totale} € ({UNLOCK_FEE} € sblocco + {costo_corsa} € per {minuti} min.)"
             }

@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status, Depends #fastapi è la class
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 from src.database import get_db_connection #import the main connection class
-from src.schemas import UserRegister, UserLogin, TokenResponse, WalletTopup, Userprofile, VehicleResponse, VehicleDetailResponse, RentalStartRequest, RentalStartResponse,RentalStopRequest,RentalStopResponse, PaymentethodBind
+import src.schemas as schemas
 from src.security import get_password_hash, verify_password, create_access_token, SECRET_KEY, ALGORITHM
 from typing import List
 import psycopg.errors
@@ -32,7 +32,7 @@ def health_check():
     '''service state check of endpoint'''
     return {"status": "ok", "service": "Eco-Fleet API"}
 
-@app.get("/api/fleet/vehicles", response_model=List[VehicleResponse], tags=["Fleet"])
+@app.get("/api/fleet/vehicles", response_model=List[schemas.VehicleResponse], tags=["Fleet"])
 def list_vehicles(stato: str |None=None, marca:str|None=None):
     """retrieve vehicles from the fleet
     supports query parameters for filtering (ex. ?stato=Disponibile&marca=BMW)"""
@@ -61,7 +61,7 @@ def list_vehicles(stato: str |None=None, marca:str|None=None):
             return veicoli
 
 
-@app.get("/api/fleet/vehicles/{seriale}", response_model=VehicleDetailResponse, tags=["Fleet"])
+@app.get("/api/fleet/vehicles/{seriale}", response_model=schemas.VehicleDetailResponse, tags=["Fleet"])
 def get_vehicle_by_id(seriale: int):
     """Retrieve detailed information for a specific vehicle by its serial number."""
     with get_db_connection() as conn:
@@ -82,7 +82,7 @@ def get_vehicle_by_id(seriale: int):
         
 
 @app.post("/api/auth/register", status_code=status.HTTP_201_CREATED, tags=["Auth"])
-def register_user(user_data: UserRegister):
+def register_user(user_data: schemas.UserRegister):
     """register a new customer and initialize their virtual credit wallet"""
     hashed_pass = get_password_hash(user_data.password)
 
@@ -112,7 +112,7 @@ def register_user(user_data: UserRegister):
             conn.commit()
         return {"message": "Utente registrato con successo! Wallet iniziale caricato con 50.00 €"}
 
-@app.post("/api/auth/login", response_model=TokenResponse, tags=["Auth"])
+@app.post("/api/auth/login", response_model=schemas.TokenResponse, tags=["Auth"])
 def login_user(credentials: OAuth2PasswordRequestForm = Depends()):
     """Authenticate user credentials and return JWT token with profile info."""
     with get_db_connection() as conn:
@@ -149,7 +149,7 @@ def login_user(credentials: OAuth2PasswordRequestForm = Depends()):
             }
 
 
-@app.get("/api/auth/me", response_model=Userprofile, tags=["Auth"])
+@app.get("/api/auth/me", response_model=schemas.Userprofile, tags=["Auth"])
 def get_user_profile(current_user: dict = Depends(get_current_user)):
     """fetch profile details for the currentlu authenticated user."""
     with get_db_connection() as conn:
@@ -168,7 +168,7 @@ def get_user_profile(current_user: dict = Depends(get_current_user)):
 
 
 @app.post("/api/auth/wallet/topup", tags=["Auth"])
-def topup_wallet(data: WalletTopup, current_user: dict = Depends(get_current_user)):
+def topup_wallet(data: schemas.WalletTopup, current_user: dict = Depends(get_current_user)):
     """Add virtual credit to the authenticated user's wallet."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -192,8 +192,8 @@ def topup_wallet(data: WalletTopup, current_user: dict = Depends(get_current_use
 
 
 
-@app.post("/api/rentals/start", response_model=RentalStartResponse, tags=["Rentals"])
-def start_rental(request: RentalStartRequest, current_user: dict = Depends(get_current_user)):
+@app.post("/api/rentals/start", response_model=schemas.RentalStartResponse, tags=["Rentals"])
+def start_rental(request: schemas.RentalStartRequest, current_user: dict = Depends(get_current_user)):
     """
     Start a new vehicle rental.
     Enforces rules: single active rental per user, sufficient credit balance, and vehicle availability.
@@ -266,8 +266,8 @@ def start_rental(request: RentalStartRequest, current_user: dict = Depends(get_c
             }
 
 
-@app.post("/api/rentals/stop", response_model=RentalStopResponse, tags=["rentals"])
-def stop_rental(request: RentalStopRequest, current_user: dict = Depends(get_current_user)):
+@app.post("/api/rentals/stop", response_model=schemas.RentalStopResponse, tags=["rentals"])
+def stop_rental(request: schemas.RentalStopRequest, current_user: dict = Depends(get_current_user)):
     """
     terminates an active rental, calculates the cost based on minutes elapsed,
     charges the value on the credit and updates the status of the vehicle.
@@ -357,7 +357,7 @@ def stop_rental(request: RentalStopRequest, current_user: dict = Depends(get_cur
             }
 
 @app.post("/api/auth/payment-method", tags=["Auth"])
-def bind_payment_method(data: PaymentethodBind, current_user: dict= Depends(get_current_user)):
+def bind_payment_method(data: schemas.PaymentethodBind, current_user: dict= Depends(get_current_user)):
     """bind a payment method token (stripe/apple pay) to the user profile."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:

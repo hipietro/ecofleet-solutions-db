@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, date
 
 #request schema for registering a new customer
 class UserRegister(BaseModel):
@@ -134,3 +134,17 @@ class DipendenteCorporateCreate(BaseModel):
     nome:str=Field(...,max_length=50)
     cognome:str=Field(...,max_length=50)
     reparto:str=Field(...,max_length=50)
+
+
+class ManutenzioneCreate(BaseModel):
+    """Request schema for logging a maintenance intervention in the Backoffice."""
+    veicolo: int = Field(..., description="Vehicle ID/Serial number")
+    tecnico: str = Field(..., max_length=20, description="Badge number of the technician performing the intervention")
+    dataoraintervento: date = Field(..., description="Date of the intervention (YYYY-MM-DD)")
+    tipointervento: str = Field(..., max_length=50)
+    costo: Decimal = Field(..., max_digits=10, decimal_places=2, description="Cost of the intervention in Euro")
+    esito: str = Field(..., max_length=100)
+    nuovo_stato_veicolo: str = Field(
+        default="Disponibile", 
+        description="The new operational state of the vehicle (e.g., 'Disponibile', 'In Manutenzione')"
+    )

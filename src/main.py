@@ -7,6 +7,7 @@ from src.security import get_password_hash, verify_password, create_access_token
 from typing import List
 import psycopg.errors
 from decimal import Decimal
+import bcrypt
 
 app= FastAPI(
     title="Eco-Fleet Solutions API",
@@ -434,5 +435,59 @@ def add_dipendente(data: schemas.DipendenteCorporateCreate, current_user: dict =
                     status_code=400, 
                     detail="Employee with this code already exists for this company."
                 )
-                
+                 
     return {"message": "Employee added successfully."}
+
+
+@app.post("/api/backoffice/maintenance", status_code=201, tags=["Backoffice"])
+def register_maintenance(data: schemas.ManutenzioneCreate, current_user: dict = Depends(get_current_user)):
+    """
+    Log a maintenance intervention and update the vehicle's operational status.
+    Access restricted to users with 'manager' or 'tecnico' roles.
+    """
+    # Authorization check
+    if current_user.get("role") not in ["manager", "tecnico"]:
+        raise HTTPException(
+            status_code=403, 
+            detail="Accesso negato. Endpoint riservato allo staff di backoffice."
+        )
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            # 1. Verify vehicle existence
+            cur.execute("SELECT serialeveicolo FROM Veicolo WHERE serialeveicolo = %s;", (data.veicolo,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail="Veicolo non trovato.")
+
+            # 2. Verify technician existence
+            cur.execute("SELECT matricolatecnico FROM Tecnico WHERE matricolatecnico = %s;", (data.tecnico,))
+            if not cur.fetchone():
+                raise HTTPException(status_code=404, detail=f"Tecnico con matricola {data.tecnico} non trovato.")
+
+            try:
+                # 3. Insert the intervention log into the database
+                cur.execute("""
+                    INSERT INTO manutenzione (veicolo, tecnico, dataoraintervento, tipointervento, costo, esito)
+                    VALUES (%s, %s, %s, %s, %s, %s);
+                """, (data.veicolo, data.tecnico, data.dataoraintervento, data.tipointervento, data.costo, data.esito))
+                
+                # 4. Update the vehicle's operational status
+                cur.execute("""
+                    UPDATE Veicolo 
+                    SET statooperativo = %s 
+                    WHERE serialeveicolo = %s;
+                """, (data.nuovo_stato_veicolo, data.veicolo))
+                
+                conn.commit()
+            except psycopg.errors.UniqueViolation:
+                conn.rollback()
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Intervento già registrato per questo veicolo, tecnico e data."
+                )
+
+    return {
+        "message": "Manutenzione registrata con successo.",
+        "veicolo": data.veicolo,
+        "nuovo_stato": data.nuovo_stato_veicolo
+    }

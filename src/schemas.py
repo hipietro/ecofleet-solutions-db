@@ -106,3 +106,31 @@ class VehicleResponse(BaseModel):
     statooperativo: str
     kmtotali: int | Decimal
     costoorario: Decimal = Field(..., description="Hourly rate in EUR")
+
+
+class ClienteCorporateRegister(BaseModel):
+    """
+    request schema for registering a new corporate customer (azienda/company).
+    combines base user fields with corporate-specific fields.
+    """
+    #base fields for the parent 'cliente' table
+    codicefiscale: str=Field(...,min_length=11, max_length=16, description="Tax ID or VAT number if coincident")
+    email: EmailStr
+    telefono: str=Field(..., max_length=20)
+    password: str=Field(...,min_length=8)
+
+    #specific fields for the child 'clientecorporate' table
+    ragionesociale: str=Field(..., max_length=100)
+    partitaiva:str=Field(...,max_length=20)
+    livellocontratto: str = Field(..., max_length=30, description="E.g., 'Base', 'Premium', 'Flat'")
+
+
+class DipendenteCorporateCreate(BaseModel):
+    """
+    request schema for creating a new corporate employee
+    the 'clientecorporate' FK is omitted here as it will be securely inferred from the current from the user's JWT token
+    """
+    codicedipendente:str=Field(..., max_length=30)
+    nome:str=Field(...,max_length=50)
+    cognome:str=Field(...,max_length=50)
+    reparto:str=Field(...,max_length=50)

@@ -8,6 +8,11 @@ from typing import List
 import psycopg.errors
 from decimal import Decimal
 import bcrypt
+import io
+import pandas as pd
+import numpy as np
+from fastapi.responses import StreamingResponse
+
 
 app= FastAPI(
     title="Eco-Fleet Solutions API",
@@ -491,3 +496,89 @@ def register_maintenance(data: schemas.ManutenzioneCreate, current_user: dict = 
         "veicolo": data.veicolo,
         "nuovo_stato": data.nuovo_stato_veicolo
     }
+
+@app.get("/api/backoffice/analytics/kpi", tags=["Analytics"])
+def get_fleet_kpi(current_user: dict=Depends(get_current_user)):
+    """
+    calculate Fleet key performance indicators (kpi) using pandas and numpy
+    extracts completed rentals to compute revenues, averages, and statistical deviations
+    """
+    if current_user.get("role") not in ["manager"]:
+        raise HTTPException(status_code=403, detail="Accesso riservato ai manager")
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            #fetch all completed rentals with vehicle detail
+            cur.execute("""
+                SELECT n.codicenoleggio, n.veicolo, v.statooperativo, n.costototale, n.dataorainizio, n.dataorafine 
+                FROM Noleggio n
+                JOIN Veicolo v ON n.veicolo = v.serialeveicolo
+                WHERE n.dataorafine IS NOT NULL;
+            """)
+            rows = cur.fetchall()
+
+    if not rows:
+        return {"message": "Nessun dato sufficiente per calcolare i KPI."}
+
+    #1. load data into a Pandas Dataframe
+    df= pd.DataFrame(rows)
+
+    #ensure costototale is a numeric float for Numpy operations
+    df['costototale'] = pd.to_numeric(df['costototale'])
+
+    #2. pandas operations: grouping and aggregation
+    total_revenue= df['costototale'].sum()
+    revenue_by_vehicle=df.groupby('veicolo')['costototale'].sum().to_dict()
+
+    #3. numpy operations: advanced statistical analysys
+    #let's find the average rental cost and the standard deviation to spot anomalies
+    avg_cost=np.mean(df['costototale'])
+    std_deviation=np.std(df['costototale'])
+
+    return{
+        "kpi_summary":{
+            "total_rentals_completed": len(df),
+            "total_revenue_euro": round(float(total_revenue), 2),
+            "average_rental_cost_euro": round(float(avg_cost),2),
+            "cost_standand_deviation": round(float(std_deviation),2)
+        },
+        "revenue_by_vehicle": revenue_by_vehicle
+    }
+
+@app.get("/api/backoffice/reports/export", tags=["Analytics"])
+def export_rental_excel(current_user:dict =Depends(get_current_user)):
+    """
+    Export all completed rentals as a downloadable Excel (.xlsx) file for accuonting 
+    uses pandas to structure the dataframe and OpenPyXL to generate the file in-memory
+    """
+    if current_user.get("role") not in ["manager"]:
+        raise HTTPException(status_code=403, detail="Accesso riservato ai manager")
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM Noleggio WHERE dataorafine IS NOT NULL;")
+            rows=cur.fetchall()
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="Nessun noleggio da esportare.")
+
+    df=pd.DataFrame(rows)
+
+    #create an in-memory buffer to save the Excel file without writing to the pshysical disk
+    output=io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Noleggi Completati')
+
+    #rewind the buffer to the beginning so it can be read by FastAPI
+    output.seek(0)
+
+    #set headers to force the browser to download the file
+    headers={ 
+        'Content-Disposition': 'attachment; filename="ecofleet_rentals_report.xlsx"'
+    }
+
+    return StreamingResponse(
+        output,
+        headers=headers,
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )

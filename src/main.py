@@ -12,12 +12,21 @@ import io
 import pandas as pd
 import numpy as np
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app= FastAPI(
     title="Eco-Fleet Solutions API",
     description="Backend REST per la gestione della flotta aziendale e dei noleggi",
     version = "1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 oauth2_scheme= OAuth2PasswordBearer(tokenUrl="/api/auth/login")

@@ -2,10 +2,10 @@
 
 # ⚡ EcoFleet Solutions
 
-### Mobilità elettrica, gestione delle flotte e analisi dei dati.
+### Electric mobility, fleet management and data analytics.
 
-Una piattaforma full stack per gestire veicoli elettrici condivisi,<br>
-noleggi, clienti aziendali e operazioni di manutenzione.
+A full-stack platform for managing shared electric vehicles,<br>
+rentals, corporate customers and maintenance operations.
 
 <p>
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
@@ -20,94 +20,94 @@ noleggi, clienti aziendali e operazioni di manutenzione.
   <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
 </p>
 
-[Cosa offre](#cosa-offre) · [Architettura](#architettura) · [Avvio locale](#avvio-locale) · [API](#api) · [Roadmap](#roadmap)
+[Features](#features) · [Architecture](#architecture) · [Local setup](#local-setup) · [API](#api) · [Roadmap](#roadmap)
 
-**In sviluppo** · Backend operativo · Interfaccia React in evoluzione
+**Under development** · Working backend · React interface in progress
 
 </div>
 
 ---
 
-## Il progetto
+## About the project
 
-**EcoFleet Solutions** esplora la gestione di un servizio di mobilità elettrica condivisa: dalla ricerca di un veicolo al termine del noleggio, dalla tariffazione individuale agli accordi corporate, fino all'analisi economica della flotta.
+**EcoFleet Solutions** explores the management of a shared electric mobility service: from finding a vehicle to completing a rental, from individual vehicle pricing to corporate agreements and fleet revenue analysis.
 
-Il progetto nasce nell'ambito del corso di **Basi di Dati dell'Università di Padova**, con modellazione concettuale, progettazione relazionale, SQL e un client C. Su questa base si sta sviluppando un'applicazione web con **React e TypeScript**, un backend **Python/FastAPI** e strumenti di analisi con **pandas e NumPy**.
+The project originated in the **Database Systems course at the University of Padua**, covering conceptual modeling, relational design, SQL and a C client. That foundation is now evolving into a web application with **React and TypeScript**, a **Python/FastAPI** backend and analytics built with **pandas and NumPy**.
 
-È anche un percorso pratico di apprendimento: collegare un'interfaccia a un'API, gestire dati e transazioni, costruire report e, nei prossimi passi, rendere l'ambiente riproducibile con **Docker** e sperimentare l'orchestrazione con **Kubernetes**.
+It is also a practical learning project: connecting an interface to an API, handling data and transactions, building reports and, in future steps, creating a reproducible environment with **Docker** and exploring orchestration with **Kubernetes**.
 
-## Cosa offre
+## Features
 
-| Area | Funzionalità disponibili | Interfaccia web |
+| Area | Available functionality | Web interface |
 | :--- | :--- | :--- |
-| 🔐 Account | Registrazione privata e corporate, login JWT, profilo e controlli dei ruoli | Login e accesso alla dashboard |
-| 🚗 Flotta | Lista e dettaglio veicoli, filtri per marca e stato, tariffa del singolo mezzo | Ricerca e mappa da realizzare |
-| ⏱️ Noleggi | Avvio, chiusura, storico personale e controlli su credito, batteria e disponibilità | Visualizzazione dello storico |
-| 💳 Wallet | Saldo virtuale, ricariche e associazione simulata di un metodo di pagamento | Pagina wallet da realizzare |
-| 🏢 Corporate | Anagrafica aziendale, dipendenti associati e livelli di sconto contrattuali | Pannello dedicato da realizzare |
-| 🔧 Manutenzione | Registrazione degli interventi e aggiornamento dello stato del veicolo | Backoffice da realizzare |
-| 📊 Analisi | Ricavi totali e per veicolo, costo medio, deviazione standard ed esportazione Excel | Dashboard analitica da realizzare |
+| 🔐 Accounts | Individual and corporate registration, JWT login, profiles and role checks | Login and dashboard access |
+| 🚗 Fleet | Vehicle lists and details, brand and status filters, individual vehicle pricing | Search and map planned |
+| ⏱️ Rentals | Start, stop, personal history and checks on credit, battery and availability | Rental history display |
+| 💳 Wallet | Virtual balance, top-ups and simulated payment method association | Wallet page planned |
+| 🏢 Corporate | Company records, associated employees and contractual discount tiers | Dedicated dashboard planned |
+| 🔧 Maintenance | Maintenance logging and vehicle status updates | Backoffice interface planned |
+| 📊 Analytics | Total and per-vehicle revenue, average cost, standard deviation and Excel export | Analytics dashboard planned |
 
-Il modello PostgreSQL comprende auto, furgoni, scooter e biciclette elettriche, batterie, hub logistici, stazioni e punti di accesso, clienti, tecnici, manutenzioni, noleggi e ricevute.
+The PostgreSQL model covers electric cars, vans, scooters and bicycles, batteries, logistics hubs, stations and access points, customers, technicians, maintenance, rentals and receipts.
 
-> Il wallet usa **crediti virtuali**. Ricariche e metodi di pagamento non sono collegati a un servizio di incasso reale. I dati sulle batterie provengono dal database; non è presente un'integrazione con dispositivi di telemetria.
+> The wallet uses **virtual credits**. Top-ups and payment methods are not connected to a real payment processor. Battery data comes from the database; there is no integration with telemetry devices.
 
-## Architettura
+## Architecture
 
 ```mermaid
 flowchart LR
     WEB["Frontend<br>React · TypeScript · Vite"] -->|HTTP / JSON| API
-    subgraph BACKEND["Backend Python"]
-        API["FastAPI<br>Route · Validazione · Autorizzazioni"] --> ANALYTICS["pandas · NumPy<br>Analisi ed export Excel"]
+    subgraph BACKEND["Python backend"]
+        API["FastAPI<br>Routing · Validation · Authorization"] --> ANALYTICS["pandas · NumPy<br>Analytics and Excel export"]
     end
     API -->|SQL · psycopg 3| DB[(PostgreSQL)]
-    CLI["Client C legacy"] -->|libpq| DB
+    CLI["Legacy C client"] -->|libpq| DB
 ```
 
-- **Frontend:** gestisce navigazione, autenticazione lato interfaccia e visualizzazione dei dati restituiti dalle API.
-- **Backend:** valida le richieste con Pydantic, verifica l'utente e i suoi permessi, esegue query parametrizzate e coordina le transazioni.
-- **Database:** mantiene vincoli, relazioni e regole tramite funzioni e trigger, inclusi calcolo del costo, aggiornamento dei chilometri e generazione delle ricevute.
-- **Analisi:** pandas organizza e aggrega i dati; NumPy calcola statistiche; OpenPyXL permette di produrre file `.xlsx` in memoria.
+- **Frontend:** handles navigation, authentication UI and the display of data returned by the API.
+- **Backend:** validates requests with Pydantic, checks users and permissions, runs parameterized queries and coordinates transactions.
+- **Database:** enforces constraints, relationships and business rules through functions and triggers, including cost calculation, mileage updates and receipt generation.
+- **Analytics:** pandas structures and aggregates data; NumPy computes statistics; OpenPyXL generates `.xlsx` files in memory.
 
-### Tecnologie
+### Technology stack
 
-| Componente | Tecnologie | Impiego |
+| Component | Technologies | Purpose |
 | :--- | :--- | :--- |
-| Interfaccia | React, TypeScript, React Router, Tailwind CSS | Componenti, navigazione e stile |
-| Sviluppo frontend | Vite, ESLint | Server locale, build e controllo del codice |
-| API | Python, FastAPI, Pydantic, Uvicorn | Endpoint HTTP e validazione |
-| Persistenza | PostgreSQL, PL/pgSQL, psycopg 3 | Query SQL, transazioni, funzioni e trigger |
-| Autenticazione | PyJWT, pwdlib, bcrypt | Token di accesso e hashing delle password |
-| Analisi e report | pandas, NumPy, OpenPyXL | Aggregazioni, statistiche ed Excel |
-| Test backend | unittest, PostgreSQL temporaneo | Test di integrazione HTTP |
-| Client originario | C, libpq | Esecuzione delle query del progetto universitario |
-| Evoluzione prevista | Docker, Kubernetes | Containerizzazione e orchestrazione, ancora da introdurre |
+| User interface | React, TypeScript, React Router, Tailwind CSS | Components, navigation and styling |
+| Frontend tooling | Vite, ESLint | Local server, builds and code checks |
+| API | Python, FastAPI, Pydantic, Uvicorn | HTTP endpoints and validation |
+| Persistence | PostgreSQL, PL/pgSQL, psycopg 3 | SQL queries, transactions, functions and triggers |
+| Authentication | PyJWT, pwdlib, bcrypt | Access tokens and password hashing |
+| Analytics and reporting | pandas, NumPy, OpenPyXL | Aggregation, statistics and Excel export |
+| Backend testing | unittest, temporary PostgreSQL database | HTTP integration tests |
+| Original client | C, libpq | Running queries from the academic project |
+| Planned infrastructure | Docker, Kubernetes | Containerization and orchestration, not yet implemented |
 
-## Tariffe e regole di noleggio
+## Pricing and rental rules
 
-La tariffa appartiene al **singolo veicolo**: due auto della stessa categoria possono avere prezzi differenti. PostgreSQL recupera il costo orario dalla tabella del relativo sottotipo.
+Pricing belongs to the **individual vehicle**: two cars in the same category can have different rates. PostgreSQL retrieves the hourly rate from the corresponding subtype table.
 
-La formula attuale è:
+The current formula is:
 
 ```text
-minuti addebitati = massimo tra 1 e i minuti iniziati
-costo finale = arrotonda((1 € di sblocco + minuti × tariffa oraria / 60) × fattore contratto, 2)
+billable minutes = max(1, elapsed minutes rounded up)
+final cost = round((€1 unlock fee + minutes × hourly rate / 60) × contract factor, 2)
 ```
 
-| Contratto | Sconto sul totale, sblocco incluso |
+| Contract | Discount on the total, including the unlock fee |
 | :--- | ---: |
-| Privato / Base | 0% |
+| Individual / Base | 0% |
 | Silver | 5% |
 | Gold | 10% |
 | Premium | 15% |
 
-**Esempio:** per un'auto a 120 €/ora, un noleggio di 61 secondi conta due minuti. Con contratto Premium: `(1 + 2 × 120 / 60) × 0,85 = 4,25 €`.
+**Example:** for a car priced at €120/hour, a 61-second rental is billed as two minutes. With a Premium contract: `(1 + 2 × 120 / 60) × 0.85 = €4.25`.
 
-L'avvio richiede almeno **5 € di credito**, una batteria almeno al **15%**, un veicolo disponibile e un punto di accesso compatibile. Un cliente e un veicolo possono avere un solo noleggio attivo.
+Starting a rental requires at least **€5 in credit**, a battery level of at least **15%**, an available vehicle and a compatible access point. A customer and a vehicle can each have only one active rental.
 
-Alla chiusura, costo, ricevuta, saldo, chilometraggio e stato del mezzo vengono aggiornati nella stessa transazione. Se il credito non basta, l'operazione viene annullata e il noleggio resta attivo fino alla ricarica. Blocchi di riga e indici unici proteggono dalle richieste simultanee e dai doppi addebiti.
+At the end of a rental, the cost, receipt, balance, mileage and vehicle status are updated in a single transaction. If credit is insufficient, the operation is rolled back and the rental remains active until the wallet is topped up. Row locks and unique indexes protect against concurrent requests and duplicate charges.
 
-## Struttura del repository
+## Repository structure
 
 ```text
 .
@@ -133,20 +133,20 @@ Alla chiusura, costo, ricevuta, saldo, chilometraggio e stato del mezzo vengono 
 └── README.md
 ```
 
-La [guida alla struttura](docs/struttura_progetto.md) spiega il ruolo dei moduli e il percorso di una richiesta attraverso l'applicazione.
+The [project structure guide](docs/struttura_progetto.md) explains each module's responsibilities and how a request travels through the application.
 
-## Avvio locale
+## Local setup
 
-### Prerequisiti
+### Prerequisites
 
-- **Python** e le dipendenze elencate in `backend/requirements.txt`.
-- **PostgreSQL** avviato, con i comandi `psql` e `createdb` disponibili.
-- **Node.js 20.19+ oppure 22.12+** e npm, secondo i requisiti di Vite.
-- **Git** per clonare il repository.
+- **Python** and the dependencies listed in `backend/requirements.txt`.
+- A running **PostgreSQL** instance, with `psql` and `createdb` available.
+- **Node.js 20.19+ or 22.12+** and npm, as required by Vite.
+- **Git** to clone the repository.
 
-L'ambiente di sviluppo attualmente verificato usa **Python 3.14, PostgreSQL 18 e Node.js 24**. Gli esempi seguenti usano una shell macOS/Linux.
+The currently verified development environment uses **Python 3.14, PostgreSQL 18 and Node.js 24**. The following examples use a macOS/Linux shell.
 
-### 1. Clonare e preparare Python
+### 1. Clone the repository and prepare Python
 
 ```bash
 git clone https://github.com/hipietro/ecofleet-solutions-db.git
@@ -156,31 +156,31 @@ source venv/bin/activate
 python -m pip install -r backend/requirements.txt
 ```
 
-Su Windows, attivare l’ambiente in PowerShell con `.\venv\Scripts\Activate.ps1`.
+On Windows, activate the environment in PowerShell with `.\venv\Scripts\Activate.ps1`.
 
-### 2. Configurare l'ambiente
+### 2. Configure the environment
 
 ```bash
 cp .env.example .env
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Inserire il valore generato in `JWT_SECRET_KEY` nel file `.env` e configurare la connessione PostgreSQL.
+Set `JWT_SECRET_KEY` in `.env` to the generated value and configure the PostgreSQL connection.
 
-| Variabile | Valore di esempio | Significato |
+| Variable | Example value | Purpose |
 | :--- | :--- | :--- |
-| `DB_HOST` | `localhost` | Host PostgreSQL |
-| `DB_PORT` | `5432` | Porta PostgreSQL |
-| `DB_NAME` | `ecofleet` | Nome del database |
-| `DB_USER` | `postgres` | Utente PostgreSQL |
-| `DB_PASSWORD` | Da configurare | Password dell'utente DB, se richiesta |
-| `JWT_SECRET_KEY` | Valore casuale generato | Chiave per firmare i token |
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_NAME` | `ecofleet` | Database name |
+| `DB_USER` | `postgres` | PostgreSQL user |
+| `DB_PASSWORD` | Set locally | Database user's password, if required |
+| `JWT_SECRET_KEY` | Generated random value | Token signing key |
 
-`.env` è escluso dal versionamento. Le variabili già impostate nell'ambiente hanno precedenza sui valori del file.
+`.env` is excluded from version control. Existing environment variables take precedence over values in the file.
 
-### 3. Inizializzare un database nuovo
+### 3. Initialize a new database
 
-I comandi assumono host `localhost` e utente `postgres`: adeguarli alla propria configurazione.
+These commands assume host `localhost` and user `postgres`; adjust them to match your configuration.
 
 ```bash
 createdb -h localhost -U postgres ecofleet
@@ -189,21 +189,21 @@ psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/0
 ```
 
 > [!IMPORTANT]
-> `sql/ecofleet.sql` ricrea le tabelle e cancella i dati esistenti. Su un database già in uso, applicare soltanto la migrazione necessaria, senza rieseguire lo script iniziale.
+> `sql/ecofleet.sql` recreates the tables and deletes existing data. For a database already in use, apply only the required migration without rerunning the initialization script.
 
-I dati accademici di esempio non costituiscono un insieme di account con credenziali di accesso predefinite. Per provare il login, registrare un nuovo utente tramite le API.
+The academic sample data does not provide accounts with predefined login credentials. To try the login flow, register a new user through the API.
 
-### 4. Avviare il backend
+### 4. Start the backend
 
-Dalla root del repository, con l'ambiente virtuale attivo:
+From the repository root, with the virtual environment active:
 
 ```bash
 python -m uvicorn backend.app.main:app --reload --port 8000
 ```
 
-### 5. Avviare il frontend
+### 5. Start the frontend
 
-In un secondo terminale, dalla root del repository:
+In a second terminal, from the repository root:
 
 ```bash
 cd frontend
@@ -211,112 +211,112 @@ npm ci
 npm run dev -- --port 5173 --strictPort
 ```
 
-La porta 5173 corrisponde all'origine già consentita dalla configurazione CORS del backend.
+Port 5173 matches the origin already allowed by the backend's CORS configuration.
 
-| Servizio | Indirizzo locale |
+| Service | Local address |
 | :--- | :--- |
-| Applicazione React | [localhost:5173](http://localhost:5173) |
+| React application | [localhost:5173](http://localhost:5173) |
 | API | [localhost:8000](http://localhost:8000) |
 | Swagger UI | [localhost:8000/docs](http://localhost:8000/docs) |
-| Specifica OpenAPI | [localhost:8000/openapi.json](http://localhost:8000/openapi.json) |
-| Stato del servizio | [localhost:8000/health](http://localhost:8000/health) |
+| OpenAPI specification | [localhost:8000/openapi.json](http://localhost:8000/openapi.json) |
+| Service health | [localhost:8000/health](http://localhost:8000/health) |
 
 ## API
 
-Swagger UI permette di esplorare e provare gli endpoint. Il login usa un form OAuth2: il campo **`username` contiene l'email**, mentre `password` contiene la password dell'account. Gli endpoint protetti richiedono `Authorization: Bearer <token>`.
+Swagger UI lets you explore and try the endpoints. Login uses an OAuth2 form: **`username` contains the email address**, while `password` contains the account password. Protected endpoints require `Authorization: Bearer <token>`.
 
-| Metodo | Percorso | Funzione | Accesso |
+| Method | Path | Purpose | Access |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/health` | Stato del servizio | Pubblico |
-| `POST` | `/api/auth/register` | Registrazione privata | Pubblico |
-| `POST` | `/api/auth/register/corporate` | Registrazione aziendale | Pubblico |
-| `POST` | `/api/auth/login` | Login e token JWT | Pubblico |
-| `GET` | `/api/auth/me` | Profilo e saldo | Autenticato |
-| `POST` | `/api/auth/wallet/topup` | Ricarica virtuale | Autenticato |
-| `POST` | `/api/auth/payment-method` | Associazione di un identificativo di pagamento | Autenticato |
-| `GET` | `/api/fleet/vehicles` | Lista veicoli; filtri `stato` e `marca` | Pubblico |
-| `GET` | `/api/fleet/vehicles/{seriale}` | Dettaglio veicolo | Pubblico |
-| `POST` | `/api/rentals/start` | Avvio noleggio | Autenticato |
-| `POST` | `/api/rentals/stop` | Chiusura noleggio | Autenticato |
-| `GET` | `/api/rentals/me` | Storico personale | Autenticato |
-| `POST` | `/api/corporate/dipendenti` | Inserimento dipendente aziendale | Corporate |
-| `POST` | `/api/backoffice/maintenance` | Registrazione manutenzione | Manager o technician |
-| `GET` | `/api/backoffice/analytics/kpi` | Indicatori economici | Manager |
-| `GET` | `/api/backoffice/reports/export` | Download report `.xlsx` | Manager |
+| `GET` | `/health` | Service health | Public |
+| `POST` | `/api/auth/register` | Individual registration | Public |
+| `POST` | `/api/auth/register/corporate` | Company registration | Public |
+| `POST` | `/api/auth/login` | Login and JWT token | Public |
+| `GET` | `/api/auth/me` | Profile and balance | Authenticated |
+| `POST` | `/api/auth/wallet/topup` | Virtual credit top-up | Authenticated |
+| `POST` | `/api/auth/payment-method` | Associate a payment method identifier | Authenticated |
+| `GET` | `/api/fleet/vehicles` | Vehicle list; `stato` and `marca` filters | Public |
+| `GET` | `/api/fleet/vehicles/{seriale}` | Vehicle details | Public |
+| `POST` | `/api/rentals/start` | Start a rental | Authenticated |
+| `POST` | `/api/rentals/stop` | End a rental | Authenticated |
+| `GET` | `/api/rentals/me` | Personal rental history | Authenticated |
+| `POST` | `/api/corporate/dipendenti` | Add a company employee | Corporate |
+| `POST` | `/api/backoffice/maintenance` | Log a maintenance intervention | Manager or technician |
+| `GET` | `/api/backoffice/analytics/kpi` | Revenue and cost metrics | Manager |
+| `GET` | `/api/backoffice/reports/export` | Download an `.xlsx` report | Manager |
 
-Esempio di ricerca:
+Example search:
 
 ```bash
 curl "http://localhost:8000/api/fleet/vehicles?stato=Disponibile&marca=BMW"
 ```
 
-Gli schemi completi delle richieste e delle risposte sono disponibili nella documentazione OpenAPI generata dall'applicazione.
+Complete request and response schemas are available in the application's generated OpenAPI documentation.
 
-## Verifiche e test
+## Checks and tests
 
-La suite backend comprende **15 test di integrazione HTTP**. Verifica autenticazione e ruoli, registrazione, tariffe, sconti corporate, storico, batteria, rollback e richieste simultanee.
+The backend suite includes **15 HTTP integration tests**. It covers authentication and roles, registration, pricing, corporate discounts, rental history, battery checks, rollback and concurrent requests.
 
-Dalla root, con l'ambiente virtuale attivo:
+From the repository root, with the virtual environment active:
 
 ```bash
 ECOFLEET_RUN_DB_TESTS=1 python -m unittest discover -s backend/tests -v
 ```
 
-La suite richiede PostgreSQL locale e un utente autorizzato a creare database. Crea un database temporaneo `ecofleet_test_...`, avvia un server API separato e li rimuove al termine. Il database indicato in `DB_NAME` non viene usato per eseguire i test.
+The suite requires a local PostgreSQL server and a user allowed to create databases. It creates a temporary `ecofleet_test_...` database, starts a separate API server and removes both when finished. The database specified by `DB_NAME` is not used to run the tests.
 
-Per il frontend, dalla directory `frontend/`:
+For the frontend, from the `frontend/` directory:
 
 ```bash
 npm run lint
 npm run build
 ```
 
-La [guida alla stabilizzazione](docs/stabilizzazione_backend.md) approfondisce le correzioni e il funzionamento delle verifiche.
+The [backend stabilization guide](docs/stabilizzazione_backend.md) provides further details about the fixes and verification process.
 
-## Modello dati e documentazione
+## Data model and documentation
 
-Il modello usa entità generali e tabelle di specializzazione: per esempio `Veicolo` con `AutoElettrica`, `FurgoneElettrico` e `VeicoloLeggeroElettrico`, oppure `Cliente` con i relativi dettagli privati e corporate.
+The model uses general entities and specialization tables: for example, `Veicolo` with `AutoElettrica`, `FurgoneElettrico` and `VeicoloLeggeroElettrico`, or `Cliente` with its individual and corporate details.
 
 <details>
-<summary><strong>📐 Visualizza il diagramma entità-relazioni</strong></summary>
+<summary><strong>📐 View the entity–relationship diagram</strong></summary>
 
 <p align="center">
-  <img src="docs/er_diagram.png" alt="Diagramma entità-relazioni del progetto EcoFleet" width="1000">
+  <img src="docs/er_diagram.png" alt="EcoFleet entity–relationship diagram" width="1000">
 </p>
 
 </details>
 
-| Risorsa | Contenuto |
+| Resource | Contents |
 | :--- | :--- |
-| [Relazione universitaria](docs/Relazione%20Progetto%20EcoFleet.pdf) | Modellazione e progettazione originaria del database |
-| [Diagramma ER](docs/er_diagram.png) | Rappresentazione del modello concettuale originario |
-| [Struttura del progetto](docs/struttura_progetto.md) | Organizzazione del codice e responsabilità dei moduli |
-| [Stabilizzazione backend](docs/stabilizzazione_backend.md) | Tariffe, transazioni e test di integrazione |
-| [Client C](legacy/c/README.txt) | Compilazione e utilizzo del programma originario |
-| [Migrazioni SQL](sql/migrations/) | Evoluzione dello schema per l'applicazione web |
+| [Academic report](docs/Relazione%20Progetto%20EcoFleet.pdf) | Original database modeling and design |
+| [ER diagram](docs/er_diagram.png) | Original conceptual model |
+| [Project structure](docs/struttura_progetto.md) | Code organization and module responsibilities |
+| [Backend stabilization](docs/stabilizzazione_backend.md) | Pricing, transactions and integration tests |
+| [C client](legacy/c/README.txt) | Building and running the original program |
+| [SQL migrations](sql/migrations/) | Schema evolution for the web application |
 
-La relazione e il diagramma documentano la base accademica; le successive estensioni dell'API sono descritte nelle guide e nelle migrazioni.
+The report and diagram describe the academic foundation; subsequent API extensions are documented in the guides and migrations. The detailed guides and academic report are currently in Italian.
 
 ## Roadmap
 
-- [x] Modello relazionale, implementazione SQL e client C.
-- [x] API per account, flotta, noleggi, wallet e operazioni corporate.
-- [x] Analisi con pandas e NumPy ed esportazione Excel.
-- [x] Login React, dashboard con storico e integrazione con il backend.
-- [x] Test di integrazione e organizzazione del backend per responsabilità.
-- [ ] Completare il percorso cliente: ricerca veicoli, avvio/chiusura noleggio e wallet dall'interfaccia.
-- [ ] Realizzare il backoffice per manager e tecnici e le visualizzazioni analitiche.
-- [ ] Centralizzare i percorsi del frontend e consolidare la gestione dello stato.
-- [ ] Introdurre **Docker** e **Docker Compose** per avviare frontend, backend e database in modo riproducibile.
-- [ ] Esplorare **Kubernetes** con manifesti di deployment, servizi e configurazione dell'applicazione.
+- [x] Relational model, SQL implementation and C client.
+- [x] APIs for accounts, fleet, rentals, wallet and corporate operations.
+- [x] Analytics with pandas and NumPy, plus Excel export.
+- [x] React login, rental history dashboard and backend integration.
+- [x] Integration tests and backend organization by responsibility.
+- [ ] Complete the customer journey: vehicle search, rental start/stop and wallet management through the UI.
+- [ ] Build the manager and technician backoffice and analytics visualizations.
+- [ ] Centralize frontend routes and consolidate state management.
+- [ ] Introduce **Docker** and **Docker Compose** to run the frontend, backend and database reproducibly.
+- [ ] Explore **Kubernetes** with deployment manifests, services and application configuration.
 
-Attività e dettagli sono raccolti nelle [issue del repository](https://github.com/hipietro/ecofleet-solutions-db/issues).
+Tasks and details are tracked in the [repository issues](https://github.com/hipietro/ecofleet-solutions-db/issues).
 
-## Autori e contesto accademico
+## Authors and academic background
 
-Il progetto originario è stato realizzato per il corso di **Basi di Dati dell'Università di Padova** da:
+The original project was developed for the **Database Systems course at the University of Padua** by:
 
 - **Pietro Leonardo Acampora** — [@hipietro](https://github.com/hipietro)
 - **Luca Artinian** — [@ArtiLuca](https://github.com/ArtiLuca)
 
-L'evoluzione full stack mantiene la progettazione del database come base per applicare e approfondire sviluppo web, programmazione Python, analisi dei dati e gestione dell'ambiente applicativo.
+The full-stack evolution builds on that database design to explore web development, Python programming, data analytics and application environment management.

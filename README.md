@@ -60,18 +60,24 @@ The system models and manages:
 
 ```text
 .
-├── docs/
-│   ├── Relazione Progetto EcoFleet.pdf
-│   └── er_diagram.png
+├── backend/
+│   ├── app/
+│   │   ├── main.py             # FastAPI application assembly
+│   │   ├── api/routes/         # Auth, fleet, rentals, corporate, backoffice
+│   │   ├── api/dependencies.py # Authentication dependency
+│   │   ├── core/              # Environment configuration and security
+│   │   ├── db/                # PostgreSQL connection factory
+│   │   ├── middleware/        # CORS registration
+│   │   └── schemas/           # Pydantic models grouped by domain
+│   ├── tests/                 # Existing integration tests
+│   └── requirements.txt
+├── frontend/                  # React application and npm manifests
+├── legacy/c/                  # Original C client and native dependencies
+├── docs/                      # Project documentation and diagrams
 ├── sql/
-│   └── ecofleet (1).sql       # Full database initialization script
-├── src/
-│   ├── database.py             # Database connection factory & env loader
-│   ├── security.py             # Bcrypt hashing & JWT token generation
-│   ├── main.py                 # FastAPI application entry point & routes
-│   └── query_all.c             # Legacy C database application
+│   └── ecofleet.sql           # Full database initialization script
 ├── .env                        # Local environment variables (gitignored)
-├── requirements.txt            # Python dependencies
+├── .env.example
 └── README.md
 ```
 
@@ -86,21 +92,30 @@ The system models and manages:
 ### 2. Database Setup
 ```bash
 createdb ecofleet
-psql -d ecofleet -f "sql/ecofleet (1).sql"
+psql -d ecofleet -v ON_ERROR_STOP=1 -f sql/ecofleet.sql
+psql -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/001_api_stabilization.sql
 ```
 
 ### 3. Backend Setup
+
+Configurare le variabili locali copiando `.env.example` in `.env` e impostando credenziali PostgreSQL e un segreto JWT casuale. Il file `.env` è escluso dal versionamento.
 ```bash
 # Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 # Start FastAPI development server
-uvicorn src.main:app --reload --port 8000
+uvicorn backend.app.main:app --reload --port 8000
 ```
+
+Per aggiornare un database esistente eseguire soltanto la migrazione: `sql/ecofleet.sql` ricrea le tabelle e cancella i dati. La migrazione conserva i record esistenti e aggiorna le regole per i prossimi noleggi.
+
+Le correzioni, la formula tariffaria e l'esecuzione dei test sono spiegate passo passo in [Stabilizzazione del backend](docs/stabilizzazione_backend.md).
+
+I comandi del backend vanno eseguiti dalla root del repository. Per avviare il frontend, entrare in `frontend/` ed eseguire `npm ci` e `npm run dev`. La [guida alla struttura](docs/struttura_progetto.md) spiega il ruolo dei moduli e gli spostamenti effettuati.
 
 Access interactive API documentation at: `http://localhost:8000/docs`
 

@@ -1,26 +1,24 @@
-import os
 from datetime import datetime, timedelta, timezone
 import jwt
 from pwdlib import PasswordHash
 from pwdlib.hashers.bcrypt import BcryptHasher
-from dotenv import load_dotenv
+from pwdlib.exceptions import UnknownHashError
+from backend.app.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
-#load enviroment variables
-load_dotenv()
-
-#JWT vonfiguration settings
-SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+# Validate the signing key before the application starts.
 if not SECRET_KEY:
     raise ValueError("FATAL ERROR: JWT_SECRET_KEY enviroment variable is missing. Application cannot start securely.")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 #initialize password hasher using bcrypt
 password_hash_context = PasswordHash((BcryptHasher(),))
 
 def verify_password(plain_password: str, hashed_password:str) -> bool:
     """verify a plain text password against a stored hashed password."""
-    return password_hash_context.verify(plain_password, hashed_password)
+    try:
+        return password_hash_context.verify(plain_password, hashed_password)
+    except (ValueError, UnknownHashError):
+        # Invalid legacy hashes and oversized passwords must not cause HTTP 500.
+        return False
 
 def get_password_hash(password:str) -> str:
     """hash a plain text password using bcrypt"""

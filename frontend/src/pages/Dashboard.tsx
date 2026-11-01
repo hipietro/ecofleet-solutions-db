@@ -122,9 +122,11 @@ export default function Dashboard() {
 
       {/* BOTTOM NAVBAR */}
       <nav className="fixed bottom-0 w-full bg-white border-t border-slate-200 p-3 pb-safe flex justify-around items-center shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-10">
-        <button className="flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors">
-          <span className="text-2xl mb-1">🗺️</span>
-          <span className="text-[10px] font-semibold">Mappa</span>
+        <button
+          onClick={()=>navigate(ROUTES.FLEET)}
+          className="flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors">
+          <span className="text-2xl mb-1">🚙</span>
+          <span className="text-[10px] font-semibold">Veicoli</span>
         </button>
         
         <button className="flex flex-col items-center p-2 text-blue-600">

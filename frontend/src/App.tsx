@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import { ROUTES } from './routes/paths'
+import Fleet from './pages/Fleet'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         {/* Pagine dell'app */}
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+        <Route path={ROUTES.FLEET} element={<Fleet />} />
       </Routes>
     </BrowserRouter>
   )

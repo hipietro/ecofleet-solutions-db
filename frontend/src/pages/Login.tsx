@@ -1,6 +1,7 @@
 import { useState } from 'react'//importo gli strumenti necessari da React e dal router
 //useState serve a creare variabili che, se modificate, aggiornano l'interfaccia in tempo reale
 import { useNavigate } from 'react-router-dom'//useNavigate fa cambiare pagina via codice
+import {ROUTES} from '../routes/paths'
 
 
 //definisco componente Login, creo 3 scatole di stati(email, pw, messaggi d'errore). userò poi le funzioni
@@ -45,7 +46,7 @@ const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
       const data = await response.json()
       //salva questo token nel localStorage del browser consentendo di non dover rifare l'accesso per le chiamate future 
       localStorage.setItem('token', data.access_token)
-      navigate('/dashboard')
+      navigate(ROUTES.DASHBOARD)
     
     } catch (err) {
       //se FastAPI rifiuta la pw o il server è spento si finisce qua 

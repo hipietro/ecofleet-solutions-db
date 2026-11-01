@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Rental } from '../types/fleet'
+import {ROUTES} from '../routes/paths'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -12,7 +13,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!token) {
-      navigate('/login')
+      navigate(ROUTES.LOGIN)
       return
     }
 
@@ -27,7 +28,7 @@ export default function Dashboard() {
 
         if (response.status === 401) {
           localStorage.removeItem('token')
-          navigate('/login')
+          navigate(ROUTES.LOGIN)
           return
         }
 
@@ -51,7 +52,7 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('token')
-    navigate('/login')
+    navigate(ROUTES.LOGIN)
   }
 
   if (!token) return null

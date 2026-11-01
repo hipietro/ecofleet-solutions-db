@@ -1,17 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import { ROUTES } from './routes/paths'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rotta di default: per ora rimanda al login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
+        <Route
+        path={ROUTES.HOME}//le parentesi graffe permettono di passare un valore Javascript agli attributi JSX
+        element={<Navigate to={ROUTES.LOGIN} replace/>}
+        />
         {/* Pagine dell'app */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path={ROUTES.LOGIN} element={<Login />} />
+        <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   )

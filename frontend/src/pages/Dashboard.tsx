@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Rental } from '../types/fleet'
 import {ROUTES} from '../routes/paths'
+import { API_BASE_URL } from '../config/api'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -19,7 +20,7 @@ export default function Dashboard() {
 
     const fetchRentals = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/rentals/me', {
+        const response = await fetch(`${API_BASE_URL}/api/rentals/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

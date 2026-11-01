@@ -2,6 +2,7 @@ import { useState } from 'react'//importo gli strumenti necessari da React e dal
 //useState serve a creare variabili che, se modificate, aggiornano l'interfaccia in tempo reale
 import { useNavigate } from 'react-router-dom'//useNavigate fa cambiare pagina via codice
 import {ROUTES} from '../routes/paths'
+import { API_BASE_URL } from '../config/api'
 
 
 //definisco componente Login, creo 3 scatole di stati(email, pw, messaggi d'errore). userò poi le funzioni
@@ -27,7 +28,7 @@ const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     
     //uso fetch per effettuare una chiamata POST al backend
     try {
-      const response = await fetch('http://localhost:8000/api/auth/login', {//await mette in pausa la funzione finchè FastAPI non risponde
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {//await mette in pausa la funzione finchè FastAPI non risponde
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',//specifico il formato preparato e in body infilo i dati impacchettati qualche riga sopra

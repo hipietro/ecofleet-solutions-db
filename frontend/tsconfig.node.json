@@ -1,4 +1,10 @@
+// File overview
+// Purpose: Configure TypeScript checking for the Node-side Vite configuration.
+// Responsibilities: Provide Node types and no-emit checks for vite.config.ts.
+// Connections: Referenced by tsconfig.json; separate from the browser application configuration.
+
 {
+  // Compiler settings for this project; comments are supported by TypeScript JSONC.
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "es2023",
@@ -6,18 +12,19 @@
     "types": ["node"],
     "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* Module resolution: cooperate with Vite without writing JavaScript output. */
     "module": "nodenext",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
 
-    /* Linting */
+    /* Static checks: reject unused declarations and unsafe switch fallthrough. */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
+  // Source boundary: only these files belong to this TypeScript project.
   "include": ["vite.config.ts"]
 }

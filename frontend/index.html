@@ -1,5 +1,12 @@
+<!--
+File overview
+Purpose: Provide the HTML document served by Vite and used to mount React.
+Responsibilities: Declare page metadata, the root container and the TypeScript module entry point.
+Connections: src/main.tsx mounts App in #root; public/favicon.svg supplies the browser icon.
+-->
 <!doctype html>
 <html lang="en">
+  <!-- Document metadata: encoding, favicon, responsive viewport and browser title. -->
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -7,7 +14,9 @@
     <title>frontend</title>
   </head>
   <body>
+    <!-- React mount point: main.tsx creates the application inside this element. -->
     <div id="root"></div>
+    <!-- Vite module entry: load React and the global styling pipeline. -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,3 +1,11 @@
+# File overview
+# Purpose: Expose staff maintenance operations and manager-only fleet reports.
+# Responsibilities: Check staff roles, record maintenance, calculate rental statistics and
+#   generate Excel downloads.
+# Connections: Uses schemas/backoffice, api/dependencies, PostgreSQL, pandas, NumPy and
+#   OpenPyXL.
+
+# --- Imports and module dependencies ---
 import io
 import numpy as np
 import pandas as pd
@@ -8,16 +16,19 @@ from backend.app.db.connection import get_db_connection
 from backend.app.schemas import backoffice as schemas
 from backend.app.api.dependencies import get_current_user
 
+# --- Router collected by app/main.py; decorators below attach the public API paths ---
 router = APIRouter()
 
 
+# --- Authorize staff and commit a maintenance record with its resulting vehicle state. ---
 @router.post("/api/backoffice/maintenance", status_code=201, tags=["Backoffice"])
 def register_maintenance(data: schemas.ManutenzioneCreate, current_user: dict = Depends(get_current_user)):
     """
     Log a maintenance intervention and update the vehicle's operational status.
-    Access restricted to users with 'manager' or 'tecnico' roles.
+    Access restricted to users with 'manager' or 'technician' roles.
     """
     # Authorization check
+    # Match the staff role names enforced by the Cliente role constraint.
     if current_user.get("role") not in ["manager", "technician"]:
         raise HTTPException(
             status_code=403, 
@@ -65,6 +76,7 @@ def register_maintenance(data: schemas.ManutenzioneCreate, current_user: dict = 
     }
 
 
+# --- Authorize managers and aggregate completed-rental data with pandas and NumPy. ---
 @router.get("/api/backoffice/analytics/kpi", tags=["Analytics"])
 def get_fleet_kpi(current_user: dict=Depends(get_current_user)):
     """
@@ -85,6 +97,7 @@ def get_fleet_kpi(current_user: dict=Depends(get_current_user)):
             """)
             rows = cur.fetchall()
 
+    # Return a clear result when there are no completed rentals to aggregate or export.
     if not rows:
         return {"message": "Nessun dato sufficiente per calcolare i KPI."}
 
@@ -114,6 +127,7 @@ def get_fleet_kpi(current_user: dict=Depends(get_current_user)):
     }
 
 
+# --- Authorize managers and stream completed rentals as an in-memory Excel workbook. ---
 @router.get("/api/backoffice/reports/export", tags=["Analytics"])
 def export_rental_excel(current_user:dict =Depends(get_current_user)):
     """

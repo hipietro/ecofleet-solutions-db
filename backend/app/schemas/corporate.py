@@ -1,6 +1,15 @@
+# File overview
+# Purpose: Define corporate-registration and employee-creation request contracts.
+# Responsibilities: Validate company fields, supported contract tiers and bcrypt password
+#   length.
+# Connections: Used by api/routes/corporate; the owning company is supplied by authentication,
+#   not employee input.
+
+# --- Imports and module dependencies ---
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
+# --- Company registration input combining account credentials and contractual company data. ---
 class ClienteCorporateRegister(BaseModel):
     """
     request schema for registering a new corporate customer (azienda/company).
@@ -17,6 +26,7 @@ class ClienteCorporateRegister(BaseModel):
     partitaiva:str=Field(...,max_length=20)
     livellocontratto: str = Field(..., max_length=30, description="Base, Silver, Gold or Premium")
 
+    # --- Normalize supported contract tiers to the labels recognized by PostgreSQL pricing. ---
     @field_validator('livellocontratto')
     @classmethod
     def validate_contract_level(cls, value: str) -> str:
@@ -25,6 +35,7 @@ class ClienteCorporateRegister(BaseModel):
             raise ValueError('Livello contratto non valido: usare Base, Silver, Gold o Premium.')
         return levels[value.strip().lower()]
 
+    # --- Enforce bcrypt limits using UTF-8 bytes rather than the number of characters. ---
     @field_validator('password')
     @classmethod
     def validate_password_bytes(cls, value: str) -> str:
@@ -33,6 +44,7 @@ class ClienteCorporateRegister(BaseModel):
         return value
 
 
+# --- Employee input; the owning company is inferred from the authenticated account. ---
 class DipendenteCorporateCreate(BaseModel):
     """
     request schema for creating a new corporate employee

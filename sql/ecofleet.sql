@@ -1,3 +1,11 @@
+-- File overview
+-- Purpose: Initialize the original academic EcoFleet schema, sample data and business rules.
+-- Responsibilities: Recreate tables/domains/sequences, seed fixtures, install triggers and provide reference reports.
+-- Connections: backend/tests loads this into a temporary DB; real installations apply migrations afterward;
+--   legacy/c/query_all.c runs related reports through libpq.
+-- Initialization section: the DROP statements below destroy existing data in the target schema.
+-- Existing databases must use the appropriate migrations instead of rerunning this file.
+
 DROP TABLE IF EXISTS Ricevuta CASCADE;
 DROP TABLE IF EXISTS Noleggio CASCADE;
 DROP TABLE IF EXISTS Manutenzione CASCADE;
@@ -32,7 +40,7 @@ DROP SEQUENCE IF EXISTS veicolo_idveicolo_seq CASCADE;
 SET client_encoding = 'UTF8';
 
 
--- DOMINI --
+-- --- Reusable domains: monetary values, charge percentages and allowed status/payment labels ---
 
 CREATE DOMAIN euro AS NUMERIC(8,2)
 CHECK (VALUE >= 0);
@@ -56,8 +64,9 @@ CHECK (VALUE IN (
 
 
 
--- VEICOLI --
+-- --- Fleet tables: base vehicles, category specializations and battery details ---
 
+-- Base vehicle identity and operational state; subtype tables provide category-specific details and rates.
 CREATE TABLE Veicolo (
   serialeveicolo INTEGER PRIMARY KEY,
   marca VARCHAR(50) NOT NULL,
@@ -67,6 +76,7 @@ CREATE TABLE Veicolo (
   kmtotali INTEGER DEFAULT 0 CHECK (kmtotali >= 0)
 );
 
+-- Electric-car specialization; shares its key with Veicolo and supplies its individual hourly rate.
 CREATE TABLE AutoElettrica (
   veicolo INTEGER PRIMARY KEY,
   autonomiakm INTEGER NOT NULL CHECK (autonomiakm > 0),
@@ -75,6 +85,7 @@ CREATE TABLE AutoElettrica (
   FOREIGN KEY (veicolo) REFERENCES Veicolo(serialeveicolo) ON DELETE CASCADE
 );
 
+-- Electric-van specialization; links to Veicolo and adds cargo capacity, range and pricing.
 CREATE TABLE FurgoneElettrico (
   veicolo INTEGER PRIMARY KEY,
   autonomiakm INTEGER NOT NULL CHECK (autonomiakm > 0),
@@ -83,6 +94,7 @@ CREATE TABLE FurgoneElettrico (
   FOREIGN KEY (veicolo) REFERENCES Veicolo(serialeveicolo) ON DELETE CASCADE
 );
 
+-- Light-vehicle specialization; links to Veicolo and describes scooter/bicycle details and pricing.
 CREATE TABLE VeicoloLeggeroElettrico (
   veicolo INTEGER PRIMARY KEY,
   necessitacolonnina BOOLEAN NOT NULL,
@@ -91,6 +103,7 @@ CREATE TABLE VeicoloLeggeroElettrico (
   FOREIGN KEY (veicolo) REFERENCES Veicolo(serialeveicolo) ON DELETE CASCADE
 );
 
+-- Battery state for one vehicle; the start-rental API reads percentualebatteria before unlocking.
 CREATE TABLE Batteria (
   serialebatteria VARCHAR(50) PRIMARY KEY,
   capacita NUMERIC(6,2) NOT NULL CHECK (capacita > 0),
@@ -102,8 +115,9 @@ CREATE TABLE Batteria (
 );
 
 
--- CLIENTI --
+-- --- Customer tables: common identity, individual/company specializations and employees ---
 
+-- Base customer identity/contact data; migrations later add API credentials, roles and virtual credit.
 CREATE TABLE Cliente (
   codicefiscale VARCHAR(16) PRIMARY KEY,
   email VARCHAR(100) NOT NULL UNIQUE,
@@ -111,6 +125,7 @@ CREATE TABLE Cliente (
   dataregistrazione DATE NOT NULL
 );
 
+-- Individual-customer details and unique license; registration inserts this after Cliente.
 CREATE TABLE ClientePrivato (
   cliente VARCHAR(16) PRIMARY KEY,
   nome VARCHAR(50) NOT NULL,
@@ -119,6 +134,7 @@ CREATE TABLE ClientePrivato (
   FOREIGN KEY (cliente) REFERENCES Cliente(codicefiscale) ON DELETE CASCADE
 );
 
+-- Company details and contract tier; pricing functions resolve the discount through this specialization.
 CREATE TABLE ClienteCorporate (
   cliente VARCHAR(16) PRIMARY KEY,
   ragionesociale VARCHAR(100) NOT NULL,
@@ -127,6 +143,7 @@ CREATE TABLE ClienteCorporate (
   FOREIGN KEY (cliente) REFERENCES Cliente(codicefiscale) ON DELETE CASCADE
 );
 
+-- Employee records owned by a company; the corporate API infers that owner from authentication.
 CREATE TABLE DipendenteCorporate (
   clientecorporate VARCHAR(16) NOT NULL,
   codicedipendente VARCHAR(30) NOT NULL,
@@ -138,8 +155,9 @@ CREATE TABLE DipendenteCorporate (
 );
 
 
--- INFRASTRUTTURA --
+-- --- Infrastructure: hubs contain stations, and stations contain compatible access points ---
 
+-- Logistics hubs referenced by stations and rental departure/return access points.
 CREATE TABLE HubLogistico (
   codicehub INTEGER PRIMARY KEY,
   citta VARCHAR(50) NOT NULL,
@@ -148,6 +166,7 @@ CREATE TABLE HubLogistico (
   nome VARCHAR(100)
 );
 
+-- Stations identified within a hub; provides the parent key for PuntoAccesso.
 CREATE TABLE StazioneRicarica (
   codicehub INTEGER NOT NULL,
   numerostazione INTEGER NOT NULL,
@@ -157,6 +176,7 @@ CREATE TABLE StazioneRicarica (
   FOREIGN KEY (codicehub) REFERENCES HubLogistico(codicehub) ON DELETE CASCADE
 );
 
+-- Composite hub/station/point identity and connector type used by rental compatibility checks.
 CREATE TABLE PuntoAccesso (
   codicehub INTEGER NOT NULL,
   numerostazione INTEGER NOT NULL,
@@ -168,8 +188,9 @@ CREATE TABLE PuntoAccesso (
 );
 
 
--- TECNICI, CERTIFICAZIONI, MANUTENZIONI --
+-- --- Maintenance data: staff identities, qualifications and vehicle interventions ---
 
+-- Technician identities referenced by certifications and maintenance interventions.
 CREATE TABLE Tecnico (
   matricola VARCHAR(20) PRIMARY KEY,
   nome VARCHAR(50) NOT NULL,
@@ -177,12 +198,14 @@ CREATE TABLE Tecnico (
   specializzazione VARCHAR(50)
 );
 
+-- Certification definitions linked to technicians through Abilitazione.
 CREATE TABLE Certificazione (
   codicecertificazione INTEGER PRIMARY KEY,
   titolo VARCHAR(100) NOT NULL UNIQUE,
   ambito VARCHAR(100)
 );
 
+-- Association between a technician and a certification, including its issue details.
 CREATE TABLE Abilitazione (
   tecnico VARCHAR(20) NOT NULL,
   certificazione INTEGER NOT NULL,
@@ -193,6 +216,7 @@ CREATE TABLE Abilitazione (
   FOREIGN KEY (certificazione) REFERENCES Certificazione(codicecertificazione) ON DELETE CASCADE
 );
 
+-- Maintenance interventions joining a vehicle, technician and timestamp; consumed by staff operations.
 CREATE TABLE Manutenzione (
   veicolo INTEGER NOT NULL,
   tecnico VARCHAR(20) NOT NULL,
@@ -206,8 +230,9 @@ CREATE TABLE Manutenzione (
 );
 
 
--- NOLEGGI E RICEVUTE --
+-- --- Rental lifecycle: constrained rental records and their receipts ---
 
+-- Rental lifecycle and customer/vehicle/access-point relationships; checks separate active from completed rows.
 CREATE TABLE Noleggio (
   codicenoleggio INTEGER PRIMARY KEY,
 
@@ -264,6 +289,7 @@ CREATE TABLE Noleggio (
   )
 );
 
+-- Receipt linked to a rental; completion triggers generate it and validation checks its consistency.
 CREATE TABLE Ricevuta (
   codicericevuta INTEGER PRIMARY KEY,
   noleggio INTEGER NOT NULL UNIQUE,
@@ -274,8 +300,9 @@ CREATE TABLE Ricevuta (
 
 
 
--- SEQUENZE PER ID --
+-- --- Generated identifiers: attach sequences to the corresponding entity keys ---
 
+-- Identifier source veicolo_idveicolo_seq: ownership and the matching column default are assigned below.
 CREATE SEQUENCE veicolo_idveicolo_seq
   AS integer
   START WITH 1
@@ -287,6 +314,7 @@ CREATE SEQUENCE veicolo_idveicolo_seq
 ALTER SEQUENCE veicolo_idveicolo_seq OWNED BY Veicolo.serialeveicolo;
 ALTER TABLE Veicolo ALTER COLUMN serialeveicolo SET DEFAULT nextval('veicolo_idveicolo_seq');
 
+-- Identifier source hublogistico_idhub_seq: ownership and the matching column default are assigned below.
 CREATE SEQUENCE hublogistico_idhub_seq
   AS integer
   START WITH 1
@@ -298,6 +326,7 @@ CREATE SEQUENCE hublogistico_idhub_seq
 ALTER SEQUENCE hublogistico_idhub_seq OWNED BY  HubLogistico.codicehub;
 ALTER TABLE HubLogistico ALTER COLUMN codicehub SET DEFAULT nextval('hublogistico_idhub_seq');
 
+-- Identifier source certificazione_codicecertificazione_seq: ownership and the matching column default are assigned below.
 CREATE SEQUENCE certificazione_codicecertificazione_seq
   AS integer
   START WITH 1
@@ -309,6 +338,7 @@ CREATE SEQUENCE certificazione_codicecertificazione_seq
 ALTER SEQUENCE certificazione_codicecertificazione_seq OWNED BY Certificazione.codicecertificazione;
 ALTER TABLE Certificazione ALTER COLUMN codicecertificazione SET DEFAULT nextval('certificazione_codicecertificazione_seq');
 
+-- Identifier source noleggio_idnoleggio_seq: ownership and the matching column default are assigned below.
 CREATE SEQUENCE noleggio_idnoleggio_seq
   AS integer
   START WITH 1
@@ -320,6 +350,7 @@ CREATE SEQUENCE noleggio_idnoleggio_seq
 ALTER SEQUENCE noleggio_idnoleggio_seq OWNED BY Noleggio.codicenoleggio;
 ALTER TABLE Noleggio ALTER COLUMN codicenoleggio SET DEFAULT nextval('noleggio_idnoleggio_seq');
 
+-- Identifier source ricevuta_id_ricevuta_seq: ownership and the matching column default are assigned below.
 CREATE SEQUENCE ricevuta_id_ricevuta_seq
   AS integer
   START WITH 1
@@ -332,8 +363,9 @@ ALTER SEQUENCE ricevuta_id_ricevuta_seq OWNED BY Ricevuta.codicericevuta;
 ALTER TABLE Ricevuta ALTER COLUMN codicericevuta SET DEFAULT nextval('ricevuta_id_ricevuta_seq');
 
 
--- POPOLAMENTO DEL DB --
+-- --- Academic sample data: seed related entities before installing their lifecycle triggers ---
 
+-- Academic sample data for Veicolo; related inserts follow foreign-key dependencies.
 INSERT INTO Veicolo (serialeveicolo, marca, modello, targa, statooperativo, kmtotali) VALUES
   ('102', 'Tesla', 'Model Y', 'GK301AA', 'Disponibile', '5250'),
   ('103', 'Fiat', '500e', 'GK302AA', 'Disponibile', '6500'),
@@ -379,6 +411,7 @@ INSERT INTO Veicolo (serialeveicolo, marca, modello, targa, statooperativo, kmto
   ('143', 'Trek', 'Allant+ 7', 'EB34142', 'Disponibile', '1420');
 
 
+-- Academic sample data for HubLogistico; related inserts follow foreign-key dependencies.
 INSERT INTO HubLogistico (codicehub, citta, indirizzo, areaoperativa, nome) VALUES
   ('1', 'Milano', 'Via Vittor Pisani 15', 'Milano Centro-Stazione', 'Hub Milano'),
   ('2', 'Torino', 'Corso Vittorio Emanuele II 52', 'Torino Centro-Crocetta', 'Hub Torino'),
@@ -387,6 +420,7 @@ INSERT INTO HubLogistico (codicehub, citta, indirizzo, areaoperativa, nome) VALU
   ('5', 'Firenze', 'Piazza della Stazione 4', 'Firenze Santa Maria Novella', 'Hub Firenze');
 
 
+-- Academic sample data for StazioneRicarica; related inserts follow foreign-key dependencies.
 INSERT INTO StazioneRicarica (potenzakw, numerocolonnine, codicehub, numerostazione) VALUES
   ('150.00', '10', '1', '1'),
   ('50.00', '10', '1', '2'),
@@ -401,6 +435,7 @@ INSERT INTO StazioneRicarica (potenzakw, numerocolonnine, codicehub, numerostazi
   ('100.00', '10', '5', '1'),
   ('22.00', '10', '5', '2');
 
+-- Academic sample data for PuntoAccesso; related inserts follow foreign-key dependencies.
 INSERT INTO PuntoAccesso (numeropunto, tipoconnettore, codicehub, numerostazione) VALUES
   ('1', '2', '1', '1'),
   ('2', '3', '1', '1'),
@@ -523,6 +558,7 @@ INSERT INTO PuntoAccesso (numeropunto, tipoconnettore, codicehub, numerostazione
   ('9', '1', '5', '2'),
   ('10', '2', '5', '2');
 
+-- Academic sample data for Cliente; related inserts follow foreign-key dependencies.
 INSERT INTO Cliente (email, telefono, dataregistrazione, codicefiscale) VALUES
   ('mario.rossi@test.it', NULL, '2024-01-01', 'RSSMRA80A01H501U'),
   ('francesco.esposito@test.it', '3331234567', '2026-05-16', 'SPSFNC82C10F205Z'),
@@ -541,6 +577,7 @@ INSERT INTO Cliente (email, telefono, dataregistrazione, codicefiscale) VALUES
   ('mobility@smartdelivery.test', '0553005005', '2025-03-11', '20000000005'),
   ('logistica@freshmarket.test', '0499006006', '2025-03-25', '20000000006');
 
+-- Academic sample data for ClienteCorporate; related inserts follow foreign-key dependencies.
 INSERT INTO ClienteCorporate (ragionesociale, partitaiva, livellocontratto, cliente) VALUES
   ('GreenLog S.r.l.', 'IT20000000001', 'premium', '20000000001'),
   ('UrbanMove Italia S.p.A.', 'IT20000000002', 'gold', '20000000002'),
@@ -549,6 +586,7 @@ INSERT INTO ClienteCorporate (ragionesociale, partitaiva, livellocontratto, clie
   ('SmartDelivery Toscana S.r.l.', 'IT20000000005', 'gold', '20000000005'),
   ('FreshMarket Logistics S.r.l.', 'IT20000000006', 'silver', '20000000006');
 
+-- Academic sample data for ClientePrivato; related inserts follow foreign-key dependencies.
 INSERT INTO ClientePrivato (nome, cognome, patente, cliente) VALUES
   ('Mario', 'Rossi', 'PD12345', 'RSSMRA80A01H501U'),
   ('Francesco', 'Esposito', 'U1C111111X', 'SPSFNC82C10F205Z'),
@@ -561,6 +599,7 @@ INSERT INTO ClientePrivato (nome, cognome, patente, cliente) VALUES
   ('Sara', 'Conti', 'PD900007', 'CNTSRA91R55F205X'),
   ('Davide', 'Moretti', 'PD900008', 'MRTDVD86S30G224B');
 
+-- Academic sample data for DipendenteCorporate; related inserts follow foreign-key dependencies.
 INSERT INTO DipendenteCorporate (nome, cognome, reparto, clientecorporate, codicedipendente) VALUES
   ('Laura', 'Conti', 'Logistica', '20000000001', 'GL-001'),
   ('Marco', 'Rinaldi', 'Operations', '20000000001', 'GL-002'),
@@ -577,6 +616,7 @@ INSERT INTO DipendenteCorporate (nome, cognome, reparto, clientecorporate, codic
   ('Chiara', 'Riva', 'Magazzino', '20000000006', 'FM-001'),
   ('Simone', 'Barbieri', 'Trasporti', '20000000006', 'FM-002');
 
+-- Academic sample data for Tecnico; related inserts follow foreign-key dependencies.
 INSERT INTO Tecnico (nome, cognome, specializzazione, matricola) VALUES
   ('Mario', 'Rossi', 'Meccanico Senior', 'TEC-001'),
   ('Luigi', 'Verdi', 'Diagnostica Batterie', 'TEC-002'),
@@ -584,6 +624,7 @@ INSERT INTO Tecnico (nome, cognome, specializzazione, matricola) VALUES
   ('Alessandro', 'Neri', 'Software e Connettività', 'TEC-004'),
   ('Giulia', 'Gialli', 'Riparazione Mezzi Leggeri (Scooter)', 'TEC-005');
 
+-- Academic sample data for Certificazione; related inserts follow foreign-key dependencies.
 INSERT INTO Certificazione (codicecertificazione, titolo, ambito) VALUES
   ('1', 'Alta Tensione EV', 'Sistemi Elettrici'),
   ('2', 'Diagnostica Batterie', 'Batterie'),
@@ -596,6 +637,7 @@ INSERT INTO Certificazione (codicecertificazione, titolo, ambito) VALUES
   ('9', 'Ricarica Rapida DC', 'Colonnine'),
   ('10', 'Gestione Flotte', 'Fleet Management');
 
+-- Academic sample data for Abilitazione; related inserts follow foreign-key dependencies.
 INSERT INTO Abilitazione (certificazione, datarilascio, enterilascio, tecnico) VALUES
   ('1', '2024-03-15', 'CEI (Comitato Elettrotecnico Italiano)', 'TEC-001'),
   ('2', '2024-11-20', 'TÜV Rheinland', 'TEC-001'),
@@ -620,6 +662,7 @@ INSERT INTO Abilitazione (certificazione, datarilascio, enterilascio, tecnico) V
   ('6', '2025-02-16', 'CEI', 'TEC-005'),
   ('9', '2025-04-04', 'TÜV Italia', 'TEC-005');
 
+-- Academic sample data for AutoElettrica; related inserts follow foreign-key dependencies.
 INSERT INTO AutoElettrica (veicolo, autonomiakm, capacitabatteriakwh, costoorario) VALUES
   ('102', '450', '75.00', '14.00'),
   ('103', '260', '42.00', '8.50'),
@@ -637,6 +680,7 @@ INSERT INTO AutoElettrica (veicolo, autonomiakm, capacitabatteriakwh, costoorari
   ('115', '400', '75.00', '13.00'),
   ('116', '410', '93.40', '25.00');
 
+-- Academic sample data for FurgoneElettrico; related inserts follow foreign-key dependencies.
 INSERT INTO FurgoneElettrico (veicolo, autonomiakm, capacitacarico, costoorario) VALUES
   ('117', '280', '800.00', '17.00'),
   ('118', '330', '1000.00', '21.00'),
@@ -654,6 +698,7 @@ INSERT INTO FurgoneElettrico (veicolo, autonomiakm, capacitacarico, costoorario)
   ('130', '320', '1100.00', '22.50'),
   ('131', '330', '1000.00', '20.00');
 
+-- Academic sample data for VeicoloLeggeroElettrico; related inserts follow foreign-key dependencies.
 INSERT INTO VeicoloLeggeroElettrico (veicolo, necessitacolonnina, costoorario, tipomezzo) VALUES
   ('132', 't', '3.50', 'Scooter'),
   ('133', 't', '5.00', 'Scooter'),
@@ -668,6 +713,7 @@ INSERT INTO VeicoloLeggeroElettrico (veicolo, necessitacolonnina, costoorario, t
   ('142', 'f', '2.50', 'e-bike'),
   ('143', 'f', '2.80', 'e-bike');
 
+-- Academic sample data for Batteria; related inserts follow foreign-key dependencies.
 INSERT INTO Batteria (serialebatteria, capacita, cicliricarica, statobatteria, veicolo, percentualebatteria) VALUES
   ('BAT-CAR-001', '75.00', '21', 'Disponibile', '102', '76'),
   ('BAT-CAR-002', '42.00', '27', 'Disponibile', '103', '77'),
@@ -713,6 +759,7 @@ INSERT INTO Batteria (serialebatteria, capacita, cicliricarica, statobatteria, v
   ('BAT-EBIKE-042', '0.65', '39', 'Disponibile', '143', '91');
 
 
+-- Academic sample data for Manutenzione; related inserts follow foreign-key dependencies.
 INSERT INTO Manutenzione (dataoraintervento, tipointervento, costo, esito, veicolo, tecnico) VALUES
   ('2026-05-20', 'Sostituzione Celle Batteria', '450.00', 'In Corso', '116', 'TEC-002'),
   ('2026-05-20', 'Riparazione Sistema Frenante', '320.50', 'In Corso', '141', 'TEC-003'),
@@ -746,6 +793,7 @@ INSERT INTO Manutenzione (dataoraintervento, tipointervento, costo, esito, veico
   ('2026-06-28', 'ordinaria', '80.00', 'Completata', '141', 'TEC-005');
 
 
+-- Academic sample data for Noleggio; related inserts follow foreign-key dependencies.
 INSERT INTO Noleggio (codicenoleggio, dataorainizio, dataorafine, costototale, kmpercorsi, veicolo, puntoinizio, puntofine, hubinizio, stazioneinizio, hubfine, stazionefine, cliente) VALUES
     ('1', '2026-05-20 14:45:10', '2026-05-20 16:45:10', '22.00', '35', '112', '3', '3', '1', '1', '1', '1', 'BNCGLI90D45D612Y'),
     ('2', '2026-05-20 14:45:10', '2026-05-20 17:45:10', '28.50', '35', '113', '3', '9', '1', '1', '1', '3', 'RSSMRA80A01H501U'),
@@ -841,6 +889,7 @@ INSERT INTO Noleggio (codicenoleggio, dataorainizio, dataorafine, costototale, k
     ('2048', '2026-04-22 15:30:00', '2026-04-22 18:30:00', '8.40', '18', '143', '5', '8', '5', '2', '5', '2', 'CNTSRA91R55F205X');
 
 
+-- Academic sample data for Ricevuta; related inserts follow foreign-key dependencies.
 INSERT INTO Ricevuta (codicericevuta, noleggio, dataemissione, metodopagamento) VALUES
   ('1', '9', '2026-05-18 16:46:10', 'PayPal'),
   ('2', '10', '2026-05-16 16:46:10', 'Carta di Credito'),
@@ -929,7 +978,7 @@ INSERT INTO Ricevuta (codicericevuta, noleggio, dataemissione, metodopagamento) 
 
 
 
--- ALLINEAMENTO SEQUENZE DOPO POPOLAMENTO --
+-- --- Sequence alignment: continue generated identifiers after the explicit sample-data IDs ---
 
 SELECT setval('veicolo_idveicolo_seq', COALESCE((SELECT MAX(serialeveicolo) FROM Veicolo), 1), true);
 SELECT setval('hublogistico_idhub_seq', COALESCE((SELECT MAX(codicehub) FROM HubLogistico), 1), true);
@@ -938,8 +987,9 @@ SELECT setval('noleggio_idnoleggio_seq', COALESCE((SELECT MAX(codicenoleggio) FR
 SELECT setval('ricevuta_id_ricevuta_seq', COALESCE((SELECT MAX(codicericevuta) FROM Ricevuta), 1), true);
 
 
--- FUNZIONI E TRIGGER --
+-- --- Business functions: reusable lookups and row-trigger rules used by the API and database ---
 
+-- Increment vehicle mileage only when rental mileage is first assigned; the API must not increment it again.
 CREATE OR REPLACE FUNCTION aggiorna_km_veicolo()
 RETURNS trigger AS $$
 BEGIN
@@ -953,6 +1003,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Resolve the individual rate from car, van or light-vehicle details; used by fleet APIs and billing.
 CREATE OR REPLACE FUNCTION get_costo_orario_veicolo(p_veicolo INTEGER)
 RETURNS NUMERIC AS $$
 DECLARE
@@ -990,6 +1041,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Resolve the company contract discount; individual or unrecognized contract levels use factor 1.
 CREATE OR REPLACE FUNCTION get_fattore_sconto_cliente(p_cliente VARCHAR)
 RETURNS NUMERIC AS $$
 DECLARE
@@ -1015,6 +1067,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Academic baseline billing by proportional hours; migration 001 replaces this body with unlock-fee/minute billing.
 CREATE OR REPLACE FUNCTION calcola_costo_noleggio()
 RETURNS trigger AS $$
 DECLARE
@@ -1038,6 +1091,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Despite its broad name, this body only rejects another active rental for the same customer.
 CREATE OR REPLACE FUNCTION check_limiti_e_connettori_noleggio()
 RETURNS trigger AS $$
 DECLARE
@@ -1056,6 +1110,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Reject another return recorded at the exact same access point and end timestamp.
 CREATE OR REPLACE FUNCTION check_punto_libero()
 RETURNS trigger AS $$
 DECLARE
@@ -1077,6 +1132,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Reject another active rental for the same vehicle; operational-state checks also exist in the API.
 CREATE OR REPLACE FUNCTION check_veicolo_disponibile()
 RETURNS trigger AS $$
 DECLARE
@@ -1096,6 +1152,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Create a default battery row after a vehicle subtype is inserted.
 CREATE OR REPLACE FUNCTION crea_batteria_automatica()
 RETURNS trigger AS $$
 DECLARE
@@ -1126,6 +1183,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Generate a simulated credit-card receipt after a rental is completed for the first time.
 CREATE OR REPLACE FUNCTION genera_ricevuta_automatica()
 RETURNS trigger AS $$
 BEGIN
@@ -1140,6 +1198,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Check that the linked rental has ended and that the receipt timestamp is consistent with completion.
 CREATE OR REPLACE FUNCTION verifica_coerenza_ricevuta()
 RETURNS trigger AS $$
 DECLARE
@@ -1162,6 +1221,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Map car, van and light-vehicle subtypes to their required connector labels.
 CREATE OR REPLACE FUNCTION get_tipo_connettore_veicolo(p_veicolo INTEGER)
 RETURNS VARCHAR AS $$
 BEGIN
@@ -1181,6 +1241,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Resolve the departure/return access-point keys and reject missing or incompatible connectors.
 CREATE OR REPLACE FUNCTION verifica_compatibilita_connettore()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -1225,85 +1286,101 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- CREAZIONE TRIGGER --
+-- --- Trigger bindings: connect row lifecycle events to the business functions defined above ---
 
+-- Trigger hookup: trg_aggiorna_km_fine_noleggio calls aggiorna_km_veicolo before update on noleggio.
 CREATE TRIGGER trg_aggiorna_km_fine_noleggio
 BEFORE UPDATE ON Noleggio
 FOR EACH ROW
 EXECUTE FUNCTION aggiorna_km_veicolo();
 
+-- Trigger hookup: trg_calcola_costo calls calcola_costo_noleggio before update on noleggio.
 CREATE TRIGGER trg_calcola_costo
 BEFORE UPDATE ON Noleggio
 FOR EACH ROW
 EXECUTE FUNCTION calcola_costo_noleggio();
 
+-- Trigger hookup: trg_check_limiti_e_connettori calls check_limiti_e_connettori_noleggio before insert or update on noleggio.
 CREATE TRIGGER trg_check_limiti_e_connettori
 BEFORE INSERT OR UPDATE ON Noleggio
 FOR EACH ROW
 EXECUTE FUNCTION check_limiti_e_connettori_noleggio();
 
+-- Trigger hookup: trg_punto_occupato calls check_punto_libero before insert or update on noleggio.
 CREATE TRIGGER trg_punto_occupato
 BEFORE INSERT OR UPDATE ON Noleggio
 FOR EACH ROW
 EXECUTE FUNCTION check_punto_libero();
 
+-- Trigger hookup: trg_veicolo_occupato calls check_veicolo_disponibile before insert or update on noleggio.
 CREATE TRIGGER trg_veicolo_occupato
 BEFORE INSERT OR UPDATE ON Noleggio
 FOR EACH ROW
 EXECUTE FUNCTION check_veicolo_disponibile();
 
+-- Trigger hookup: trg_controllo_vincoli_ricevuta calls verifica_coerenza_ricevuta before insert or update on ricevuta.
 CREATE TRIGGER trg_controllo_vincoli_ricevuta
 BEFORE INSERT OR UPDATE ON Ricevuta
 FOR EACH ROW
 EXECUTE FUNCTION verifica_coerenza_ricevuta();
 
+-- Trigger hookup: trg_auto_crea_batt calls crea_batteria_automatica after insert on autoelettrica.
 CREATE TRIGGER trg_auto_crea_batt
 AFTER INSERT ON AutoElettrica
 FOR EACH ROW
 EXECUTE FUNCTION crea_batteria_automatica();
 
+-- Trigger hookup: trg_furgone_crea_batt calls crea_batteria_automatica after insert on furgoneelettrico.
 CREATE TRIGGER trg_furgone_crea_batt
 AFTER INSERT ON FurgoneElettrico
 FOR EACH ROW
 EXECUTE FUNCTION crea_batteria_automatica();
 
+-- Trigger hookup: trg_scooter_crea_batt calls crea_batteria_automatica after insert on veicololeggeroelettrico.
 CREATE TRIGGER trg_scooter_crea_batt
 AFTER INSERT ON VeicoloLeggeroElettrico
 FOR EACH ROW
 EXECUTE FUNCTION crea_batteria_automatica();
 
+-- Trigger hookup: trg_noleggio_chiuso_genera_ricevuta calls genera_ricevuta_automatica after update on noleggio.
 CREATE TRIGGER trg_noleggio_chiuso_genera_ricevuta
 AFTER UPDATE ON Noleggio
 FOR EACH ROW
 EXECUTE FUNCTION genera_ricevuta_automatica();
 
+-- Trigger hookup: trg_verifica_connettore calls verifica_compatibilita_connettore before insert or update on noleggio.
 CREATE TRIGGER trg_verifica_connettore
 BEFORE INSERT OR UPDATE ON Noleggio
 FOR EACH ROW
 EXECUTE FUNCTION verifica_compatibilita_connettore();
 
 
---  CREAZIONE INDICI --
+-- --- Read indexes: support rental history, vehicle status and maintenance queries ---
 
+-- Read-performance index idx_manutenzione_veicolo: support the table/filter combination declared below.
 CREATE INDEX idx_manutenzione_veicolo
 ON Manutenzione USING btree (veicolo);
 
+-- Read-performance index idx_noleggio_cliente: support the table/filter combination declared below.
 CREATE INDEX idx_noleggio_cliente
 ON Noleggio USING btree (cliente);
 
+-- Read-performance index idx_noleggio_date: support the table/filter combination declared below.
 CREATE INDEX idx_noleggio_date
 ON Noleggio USING btree (dataorainizio, dataorafine);
 
+-- Read-performance index idx_noleggio_veicolo: support the table/filter combination declared below.
 CREATE INDEX idx_noleggio_veicolo
 ON Noleggio USING btree (veicolo);
 
+-- Read-performance index idx_veicolo_stato: support the table/filter combination declared below.
 CREATE INDEX idx_veicolo_stato
 ON Veicolo USING btree (statooperativo);
 
 
--- DEFINIZIONI QUERY --
+-- --- Academic reports: reference queries also represented by the legacy C client ---
 
--- Query 1 - Performance economiche e di utilizzo per marca e modello
+-- Query 1: aggregate completed-rental revenue and mileage by vehicle brand/model.
 SELECT V.marca, V.modello, COUNT(N.codicenoleggio) AS NumeroNoleggiTotali,
        SUM(N.costototale) AS RicavoComplessivo, SUM(N.kmpercorsi) AS KmTotaliPercorsi
 FROM Veicolo V JOIN Noleggio N ON V.serialeveicolo = N.veicolo
@@ -1312,7 +1389,7 @@ GROUP BY V.marca, V.modello
 ORDER BY RicavoComplessivo DESC;
 
 
--- Query 2 - Clienti privati con spesa superiore a 100 euro
+-- Query 2: find individual customers whose completed-rental spending exceeds 100 euros.
 SELECT CP.nome, CP.cognome, CP.cliente AS CodiceFiscale,
        COUNT(N.codicenoleggio) AS NumeroNoleggi,
        SUM(N.costototale) AS SpesaTotaleEuro
@@ -1323,7 +1400,7 @@ HAVING SUM(N.costototale) > 100.00
 ORDER BY SpesaTotaleEuro DESC;
 
 
--- Query 3 - Popolarita' e costo medio dei noleggi per hub di partenza
+-- Query 3: count completed departures and average rental cost per starting hub.
 SELECT H.citta, COUNT(N.codicenoleggio) AS NoleggiPartiti,
        AVG(N.costototale) AS CostoMedioNoleggio
 FROM HubLogistico H JOIN Noleggio N ON H.codicehub = N.hubinizio
@@ -1332,7 +1409,7 @@ GROUP BY H.citta
 ORDER BY NoleggiPartiti DESC;
 
 
--- Query 4 - Analisi operativa dei veicoli attualmente in manutenzione
+-- Query 4: join vehicle and technician details for vehicles currently under maintenance.
 SELECT V.targa, V.marca, V.modello, M.dataoraintervento, M.tipointervento,
        M.costo AS CostoIntervento, M.esito,
        T.nome AS NomeTecnico, T.cognome AS CognomeTecnico
@@ -1342,7 +1419,7 @@ WHERE V.statooperativo = 'In Manutenzione'
 ORDER BY M.dataoraintervento DESC;
 
 
--- Query 5 - Classifica dei 5 veicoli con batterie piu' usurate
+-- Query 5: rank the five vehicle batteries with the highest recharge-cycle counts.
 SELECT V.targa, V.marca, V.modello, B.serialebatteria,
        B.cicliricarica, B.percentualebatteria
 FROM Veicolo V JOIN Batteria B ON V.serialeveicolo = B.veicolo

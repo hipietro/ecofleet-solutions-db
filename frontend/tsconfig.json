@@ -1,5 +1,11 @@
+// File overview
+// Purpose: Coordinate the frontend TypeScript project references.
+// Responsibilities: Delegate app and tooling type checks to their separate configurations.
+// Connections: Used by the tsc -b build script; references tsconfig.app.json and tsconfig.node.json.
+
 {
   "files": [],
+  // Project graph: build application and tooling checks through their own settings.
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

@@ -1,3 +1,11 @@
+# File overview
+# Purpose: Register companies and associate employees with corporate accounts.
+# Responsibilities: Create company records atomically and restrict employee insertion to the
+#   authenticated company.
+# Connections: Uses schemas/corporate, core/security, api/dependencies and the
+#   ClienteCorporate/DipendenteCorporate tables.
+
+# --- Imports and module dependencies ---
 import psycopg.errors
 from fastapi import APIRouter, Depends, HTTPException
 from backend.app.core.security import get_password_hash
@@ -5,15 +13,18 @@ from backend.app.db.connection import get_db_connection
 from backend.app.schemas import corporate as schemas
 from backend.app.api.dependencies import get_current_user
 
+# --- Router collected by app/main.py; decorators below attach the public API paths ---
 router = APIRouter()
 
 
+# --- Create an authenticated company account and its contractual company details together. ---
 @router.post("/api/auth/register/corporate", status_code=201, tags=["Auth"])
 def register_corporate(data: schemas.ClienteCorporateRegister):
     """
     Register a new corporate customer (Azienda).
     Inserts data into the parent 'cliente' table and the child 'clientecorporate' table.
     """
+    # Reuse the same password policy and hasher as individual registration.
     hashed_pw = get_password_hash(data.password)
     
     with get_db_connection() as conn:
@@ -42,6 +53,7 @@ def register_corporate(data: schemas.ClienteCorporateRegister):
     return {"message": "Corporate account created successfully."}
 
 
+# --- Authorize the company and attach the new employee to that company identity. ---
 @router.post("/api/corporate/dipendenti", status_code=201, tags=["Corporate"])
 def add_dipendente(data: schemas.DipendenteCorporateCreate, current_user: dict = Depends(get_current_user)):
     """

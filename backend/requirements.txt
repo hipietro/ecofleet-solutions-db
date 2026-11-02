@@ -1,3 +1,9 @@
+# File overview
+# Purpose: Pin the Python packages needed by the EcoFleet backend and its existing integration suite.
+# Responsibilities: Keep framework, validation, security, PostgreSQL and analytical dependencies reproducible.
+# Connections: Installed by pip using this file; app modules import the pinned packages and README documents setup.
+# Dependency section: preserve the frozen package versions and their transitive dependencies listed below.
+
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1

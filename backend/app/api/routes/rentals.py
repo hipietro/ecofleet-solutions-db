@@ -1,3 +1,11 @@
+# File overview
+# Purpose: Manage rental start, completion and the authenticated rental history.
+# Responsibilities: Coordinate row locks, eligibility checks and atomic wallet, vehicle and
+#   rental changes.
+# Connections: Uses schemas/rentals and api/dependencies; PostgreSQL triggers own pricing,
+#   mileage and receipt generation; Dashboard reads history.
+
+# --- Imports and module dependencies ---
 from decimal import Decimal
 from typing import List
 import psycopg.errors
@@ -6,9 +14,11 @@ from backend.app.db.connection import get_db_connection
 from backend.app.schemas import rentals as schemas
 from backend.app.api.dependencies import get_current_user
 
+# --- Router collected by app/main.py; decorators below attach the public API paths ---
 router = APIRouter()
 
 
+# --- Lock the customer and vehicle, check eligibility and create one active rental. ---
 @router.post("/api/rentals/start", response_model=schemas.RentalStartResponse, tags=["Rentals"])
 def start_rental(request: schemas.RentalStartRequest, current_user: dict = Depends(get_current_user)):
     """
@@ -54,6 +64,7 @@ def start_rental(request: schemas.RentalStartRequest, current_user: dict = Depen
                     detail=f"Il veicolo non può essere noleggiato. Stato attuale: {veicolo['statooperativo']}."
                 )
 
+            # Require a recorded battery level of at least 15 percent before the rental can start.
             cur.execute("SELECT percentualebatteria FROM Batteria WHERE veicolo = %s;", (request.veicolo,))
             batteria = cur.fetchone()
             if not batteria or batteria["percentualebatteria"] < 15:
@@ -91,6 +102,7 @@ def start_rental(request: schemas.RentalStartRequest, current_user: dict = Depen
             }
 
 
+# --- Lock the active rental and atomically apply database pricing, wallet debit and availability. ---
 @router.post("/api/rentals/stop", response_model=schemas.RentalStopResponse, tags=["Rentals"])
 def stop_rental(request: schemas.RentalStopRequest, current_user: dict = Depends(get_current_user)):
     """
@@ -147,6 +159,7 @@ def stop_rental(request: schemas.RentalStopRequest, current_user: dict = Depends
                     detail=f"Impossibile terminare il noleggio: {e.diag.message_primary}"
                 )
 
+            # Use the exact trigger-produced total for the wallet debit and HTTP response.
             costo_totale = chiusura["costototale"]
             minuti = chiusura["durata_minuti"]
             cur.execute("""
@@ -155,6 +168,7 @@ def stop_rental(request: schemas.RentalStopRequest, current_user: dict = Depends
                 RETURNING saldo_crediti;
             """, (costo_totale, current_user["cf"], costo_totale))
             cliente_aggiornato = cur.fetchone()
+            # Raising here rolls back the preceding rental, mileage and receipt changes as one unit.
             if not cliente_aggiornato:
                 raise HTTPException(status_code=400, detail="Credito insufficiente per terminare il noleggio. Ricarica il wallet e riprova.")
 
@@ -177,11 +191,13 @@ def stop_rental(request: schemas.RentalStopRequest, current_user: dict = Depends
             }
 
 
+# --- Return only the authenticated customer history with nested vehicle and battery details. ---
 @router.get("/api/rentals/me", response_model=List[schemas.RentalResponse], status_code=status.HTTP_200_OK)
 def get_my_rentals(current_user: dict = Depends(get_current_user)):
     """Return the authenticated customer's rentals and vehicle details."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
+            # Build the nested vehicle shape expected by RentalResponse and the React Dashboard.
             cur.execute("""
                 SELECT n.codicenoleggio, n.veicolo, n.dataorainizio, n.dataorafine,
                        n.costototale AS costo_totale,

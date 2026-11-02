@@ -1,18 +1,30 @@
+/**
+ * File overview
+ * Purpose: Define the client-side page routes for EcoFleet.
+ * Responsibilities: Create BrowserRouter, redirect the home URL to login and map route constants
+ *   to page components.
+ * Connections: main.tsx renders App; routes/paths supplies URLs; Login, Dashboard and Fleet
+ *   supply page content.
+ */
+
+// --- Imports and cross-module dependencies ---
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import { ROUTES } from './routes/paths'
 import Fleet from './pages/Fleet'
 
+// --- Application router: resolve browser URLs to the page components below. ---
 function App() {
   return (
     <BrowserRouter>
+      {/* Route matching: the home path redirects to login; the other constants select a page. */}
       <Routes>
         <Route
-        path={ROUTES.HOME}//le parentesi graffe permettono di passare un valore Javascript agli attributi JSX
+        path={ROUTES.HOME}// JSX braces pass the route constant as a JavaScript expression.
         element={<Navigate to={ROUTES.LOGIN} replace/>}
         />
-        {/* Pagine dell'app */}
+        {/* Page routes: connect shared URL constants to the corresponding components. */}
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path={ROUTES.FLEET} element={<Fleet />} />

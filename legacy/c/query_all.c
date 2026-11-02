@@ -1,10 +1,19 @@
+/*
+ * File overview
+ * Purpose: Run the original academic EcoFleet reports from a standalone C terminal client.
+ * Responsibilities: Connect with libpq, dispatch menu-selected SQL, format result tables and free resources.
+ * Connections: Uses dependencies/include/libpq-fe.h and the bundled native libraries documented in README.txt;
+ *   queries the schema from sql/ecofleet.sql directly and does not call the FastAPI application.
+ */
+
+// --- System and PostgreSQL client headers ---
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "dependencies/include/libpq-fe.h"
 
-//Parametri di connessione.
-//Modificare questi valori in base all'ambiente PostgreSQL utilizzato.
+// --- Local PostgreSQL connection constants ---
+// Adjust these demonstration values for the database used by this standalone client.
 
 #define PG_HOST "localhost"
 #define PG_USER "postgres"
@@ -13,7 +22,7 @@
 #define PG_PORT 5432
 
 
-// Funzione universale per stampare i risultati di QUALSIASI query
+// --- Result formatting: print column names, values and row counts for any SELECT result ---
 void stampa_tabella(PGresult *res) {
     int righe = PQntuples(res);
     int colonne = PQnfields(res);
@@ -25,7 +34,7 @@ void stampa_tabella(PGresult *res) {
 
     printf("\n");
 
-    // Allineamento dinamico leggermente più largo per gestire i nomi lunghi delle colonne
+    // Reserve a consistent column width for readable report output.
     for (int j = 0; j < colonne; j++) {
         printf("%-24s | ", PQfname(res, j));
     }
@@ -46,12 +55,13 @@ void stampa_tabella(PGresult *res) {
     printf("\nTotale record trovati: %d\n\n", righe);
 }
 
-// Funzione ausiliaria per eseguire la query ed effettuarne il controllo di sicurezza
+// --- Query execution: check libpq result status, print rows and release the result object ---
 void esegui_opzione(PGconn *conn, const char *query, const char *titolo) {
     printf("\n=== %s ===\n", titolo);
 
     PGresult *res = PQexec(conn, query);
 
+    // Reject failed queries before attempting to format a table.
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "Errore durante l'esecuzione della query: %s\n", PQerrorMessage(conn));
         PQclear(res);
@@ -62,9 +72,10 @@ void esegui_opzione(PGconn *conn, const char *query, const char *titolo) {
     PQclear(res);
 }
 
+// --- Program entry: connect, serve menu requests and close the connection ---
 int main(void) {
 
-    // 1. Connessione al Database
+    // --- Connection section: build libpq parameters and stop early if the server cannot be reached ---
     char conninfo[250];
     sprintf(conninfo, "host=%s port=%d dbname=%s user=%s password=%s", PG_HOST, PG_PORT, PG_DB, PG_USER, PG_PASS);
 
@@ -82,7 +93,7 @@ int main(void) {
 
     int scelta = -1;
 
-    // 2. Ciclo principale del Menu interattivo
+    // --- Interactive menu section: read a report choice and dispatch the corresponding SELECT ---
     while (scelta != 0) {
         printf("Seleziona la query da eseguire:\n");
         printf(" 1. Performance economiche e di utilizzo per Marca e Modello\n");
@@ -93,6 +104,7 @@ int main(void) {
         printf(" 0. Esci dall'applicazione\n");
         printf("Inserisci la tua scelta (0-5): ");
 
+        // Recover from non-numeric input before dispatching the selected report.
         if (scanf("%d", &scelta) != 1) {
             printf("\n[!] Input non valido. Inserisci un numero.\n\n");
             while (getchar() != '\n');
@@ -100,6 +112,7 @@ int main(void) {
         }
 
         switch (scelta) {
+            // Revenue and mileage report grouped by vehicle brand and model.
             case 1: {
                 const char *q1 =
                     "SELECT v.marca, v.modello, "
@@ -115,6 +128,7 @@ int main(void) {
                 break;
             }
 
+            // Individual-customer spending report above the academic threshold.
             case 2: {
                 const char *q2 =
                     "SELECT cp.nome, cp.cognome, cp.cliente AS codice_fiscale, "
@@ -130,6 +144,7 @@ int main(void) {
                 break;
             }
 
+            // Starting-hub popularity and average completed-rental cost.
             case 3: {
                 const char *q3 =
                     "SELECT h.citta, "
@@ -144,6 +159,7 @@ int main(void) {
                 break;
             }
 
+            // Maintenance report joined to vehicle and technician details.
             case 4: {
                 const char *q4 =
                     "SELECT v.targa, v.marca, v.modello, "
@@ -159,6 +175,7 @@ int main(void) {
                 break;
             }
 
+            // Battery wear report ordered by recharge-cycle count.
             case 5: {
                 const char *q5 =
                     "SELECT v.targa, v.marca, v.modello, "
@@ -180,16 +197,16 @@ int main(void) {
                 break;
         }
 
-        // Piccola pausa estetica prima di rimostrare il menu
+        // --- Menu pacing: wait for Enter before displaying the next prompt ---
         if (scelta != 0) {
             printf("Premi INVIO per tornare al menu...");
-            while (getchar() != '\n'); // Aspetta l'invio dell'utente
+            while (getchar() != '\n'); // Wait for the user to press Enter.
             getchar();
             printf("\n------------------------------------------------------------\n\n");
         }
     }
 
-    // 3. Chiusura formale della connessione
+    // --- Cleanup section: release the PostgreSQL connection before exiting ---
     PQfinish(conn);
     return 0;
 }

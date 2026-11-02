@@ -1,9 +1,17 @@
+# File overview
+# Purpose: Validate incoming maintenance records.
+# Responsibilities: Describe the vehicle, technician, intervention, non-negative cost and
+#   permitted resulting vehicle state.
+# Connections: Used by api/routes/backoffice before data is written to Manutenzione and Veicolo.
+
+# --- Imports and module dependencies ---
 from datetime import date
 from decimal import Decimal
 from typing import Literal
 from pydantic import BaseModel, Field
 
 
+# --- Maintenance input with validated monetary values and allowed vehicle status labels. ---
 class ManutenzioneCreate(BaseModel):
     """Request schema for logging a maintenance intervention in the Backoffice."""
     veicolo: int = Field(..., description="Vehicle ID/Serial number")

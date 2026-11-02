@@ -1,3 +1,9 @@
+<!--
+File overview
+Purpose: Introduce EcoFleet and provide the repository's primary setup and feature reference.
+Responsibilities: Describe current functionality, architecture, configuration, API usage, checks and roadmap.
+Connections: Links backend/frontend setup to SQL migrations, source-code guides and the academic documentation.
+-->
 <div align="center">
 
 # ⚡ EcoFleet Solutions
@@ -290,6 +296,7 @@ The model uses general entities and specialization tables: for example, `Veicolo
 | :--- | :--- |
 | [Academic report](docs/Relazione%20Progetto%20EcoFleet.pdf) | Original database modeling and design |
 | [ER diagram](docs/er_diagram.png) | Original conceptual model |
+| [Source comments and configuration](docs/code_guide.md) | Comment conventions, module relationships and strict JSON configuration |
 | [Project structure](docs/struttura_progetto.md) | Code organization and module responsibilities |
 | [Backend stabilization](docs/stabilizzazione_backend.md) | Pricing, transactions and integration tests |
 | [C client](legacy/c/README.txt) | Building and running the original program |

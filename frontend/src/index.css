@@ -1,2 +1,11 @@
+/**
+ * File overview
+ * Purpose: Load the global styling entry point for the React application.
+ * Responsibilities: Import Tailwind so utility classes used by all pages are available.
+ * Connections: Imported by src/main.tsx and processed by the Tailwind Vite plugin in
+ *   vite.config.ts.
+ */
 
+
+/* Global utilities: make Tailwind classes available to every React page. */
 @import "tailwindcss";

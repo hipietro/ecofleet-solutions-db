@@ -1,3 +1,13 @@
+/**
+ * File overview
+ * Purpose: Retain the visual styles supplied with the original Vite starter page.
+ * Responsibilities: Define starter counters, logo artwork, layout sections and responsive
+ *   decorations.
+ * Connections: Currently not imported by App.tsx or main.tsx; active page styling comes from
+ *   Tailwind through index.css.
+ */
+
+/* Starter counter: spacing, accent colors and keyboard/pointer feedback. */
 .counter {
   font-size: 16px;
   padding: 5px 10px;
@@ -17,6 +27,7 @@
   }
 }
 
+/* Starter artwork: position and transform the layered framework logos. */
 .hero {
   position: relative;
 
@@ -56,6 +67,7 @@
   }
 }
 
+/* Starter hero layout: center the content and adapt spacing on smaller screens. */
 #center {
   display: flex;
   flex-direction: column;
@@ -70,6 +82,7 @@
   }
 }
 
+/* Starter lower panels: split resources into columns, then stack them on mobile. */
 #next-steps {
   display: flex;
   border-top: 1px solid var(--border);
@@ -95,6 +108,7 @@
   }
 }
 
+/* Starter panel divider: switch from a vertical to a horizontal border on mobile. */
 #docs {
   border-right: 1px solid var(--border);
 
@@ -104,6 +118,7 @@
   }
 }
 
+/* Starter resource links: arrange linked badges and wrap them responsively. */
 #next-steps ul {
   list-style: none;
   padding: 0;
@@ -153,6 +168,7 @@
   }
 }
 
+/* Starter footer spacing: reduce the reserved height on smaller screens. */
 #spacer {
   height: 88px;
   border-top: 1px solid var(--border);
@@ -161,6 +177,7 @@
   }
 }
 
+/* Starter decoration: draw small border ticks with pseudo-elements. */
 .ticks {
   position: relative;
   width: 100%;

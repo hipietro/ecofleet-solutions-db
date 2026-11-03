@@ -1,8 +1,8 @@
 /**
  * File overview
- * Purpose: Display the vehicles currently available for rental.
- * Responsibilities: Fetch the public filtered fleet, handle loading/error/empty states and render
- *   individual hourly rates.
+ * Purpose: Display available vehicles and let customers filter the list by brand.
+ * Responsibilities: Fetch availability, derive brand options and matching vehicles, and render
+ *   request feedback and individual hourly rates.
  * Connections: Uses config/api, routes/paths and types/fleet; calls the backend fleet router and
  *   links back to Dashboard.
  */
@@ -20,6 +20,7 @@ export default function Fleet(){
     const [vehicles, setVehicles] = useState<Vehicle[]>([])// Keep vehicles, loading state and request feedback between renders.
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState('')
+    const [selectedBrand, setSelectedBrand] = useState('')
 
     // --- Fleet effect: load public availability and clean up an obsolete request. ---
     useEffect(()=>{// Start the request when the component mounts.
@@ -61,7 +62,21 @@ export default function Fleet(){
         return()=>controller.abort()
     }, [])
 
-    // --- Page rendering: navigation, introduction, feedback and one card per available vehicle. ---
+    // --- filter options:: extact unique brands from the available vehicles---
+    const brands = [...new Set(vehicles.map((vehicle) => vehicle.marca))].sort()
+    //new Set eliminates the duplicates
+
+    // --- visible results: derive matching vehicles without modifying the API data. ---
+    const filteredVehicles = vehicles.filter(//filter spares the elements that verify the condition
+        (vehicle) => selectedBrand === '' || vehicle.marca === selectedBrand,
+    )
+
+
+    // --- Page rendering: navigation, filters, feedback and matching vehicle cards. ---
+
+    {/* Empty section: show feedback when no vehicles match the selected filter. */}
+
+    {/* Vehicle cards: render matching vehicles with identity and hourly pricing. */}
     return(
         <main className="min-h-screen bg-slate-50 p-6">
             {/* Navigation section: return to the customer dashboard using the shared route constant. */}
@@ -79,6 +94,32 @@ export default function Fleet(){
                 Trova il veicolo per il tuo prossimo viaggio.
             </p>
 
+            {/* Brand filter: keep the selected option synchronized with React state. */}
+            <div className="mt-6">
+                <label
+                    htmlFor="fleet-brand"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                >
+                    Marca
+                </label>
+
+                <select
+                    id="fleet-brand"
+                    value={selectedBrand}
+                    onChange={(event) => setSelectedBrand(event.target.value)}
+                    disabled={isLoading || Boolean(error)}
+                    className="w-full rounded-lg border border-slate-300 bg-white p-3"
+                >
+                    <option value="">Tutte le marche</option>
+
+                    {brands.map((brand)=>(
+                        <option key={brand} value={brand}>
+                            {brand}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
             {/* Loading section: show progress until the request completes. */}
             {isLoading && (
                 <p className="mt-6 text-slate-500">Caricamento veicoli...</p>
@@ -92,14 +133,14 @@ export default function Fleet(){
             )}
 
             {/* Empty section: distinguish a successful empty response from a loading or network error. */}
-            {!isLoading && !error && vehicles.length === 0 && (
+            {!isLoading && !error && filteredVehicles.length === 0 && (
                 <p className="mt-6 text-slate-500">
-                    Nessun veicolo disponibile al momento.
+                    Nessun veicolo disponibile al momento per questa selezione.
                 </p>
             )}
 
             {/* Vehicle cards: map API rows to stable keyed elements with identity and hourly pricing. */}
-            {!isLoading && !error && vehicles.map((vehicle) => (
+            {!isLoading && !error && filteredVehicles.map((vehicle) => (
                 <article
                     key={vehicle.serialeveicolo}
                     className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"

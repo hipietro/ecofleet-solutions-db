@@ -13,6 +13,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import { ROUTES } from './routes/paths'
 import Fleet from './pages/Fleet'
+import VehicleDetails from './pages/VehicleDetails'
 
 // --- Application router: resolve browser URLs to the page components below. ---
 function App() {
@@ -28,6 +29,7 @@ function App() {
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path={ROUTES.FLEET} element={<Fleet />} />
+        <Route path={ROUTES.VEHICLE_DETAILS} element={<VehicleDetails />} />
       </Routes>
     </BrowserRouter>
   )

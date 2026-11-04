@@ -8,7 +8,7 @@
  */
 
 // --- Imports and cross-module dependencies ---
-import { useNavigate } from "react-router-dom"
+import { Link, generatePath, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { API_BASE_URL } from "../config/api"
 import type { Vehicle } from "../types/fleet"
@@ -160,6 +160,15 @@ export default function Fleet(){
                             currency: 'EUR',
                         })}/ora
                     </p>
+                    {/* Detail navigation: open the page for this specific vehicle. */}
+                    <Link
+                        to={generatePath(ROUTES.VEHICLE_DETAILS, {
+                            seriale: String(vehicle.serialeveicolo),
+                        })}
+                        className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:underline"
+                        >
+                        Vedi dettagli
+                    </Link>
                 </article>
             ))}
             

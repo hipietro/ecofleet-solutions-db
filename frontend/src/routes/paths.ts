@@ -12,5 +12,6 @@ export const ROUTES={
     HOME:'/',
     LOGIN:'/login',
     DASHBOARD:'/dashboard',
-    FLEET:'/vehicles'
+    FLEET:'/vehicles',
+    VEHICLE_DETAILS: '/vehicles/:seriale', //dynamic route: seriale identifies the vehicle selected from Fleet
 } as const;// Preserve literal route types and readonly properties at compile time.

@@ -3,7 +3,7 @@
 # Responsibilities: Apply optional filters, retrieve each vehicle rate through PostgreSQL and
 #   return vehicle schemas.
 # Connections: Uses schemas/fleet and db/connection; the React Fleet page consumes the
-#   available-vehicle list.
+#   available-vehicle list and VehicleDetails consumes the individual vehicle response.
 
 # --- Imports and module dependencies ---
 from typing import List

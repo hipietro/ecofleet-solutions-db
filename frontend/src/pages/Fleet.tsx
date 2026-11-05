@@ -2,9 +2,9 @@
  * File overview
  * Purpose: Display available vehicles and let customers filter the list by brand.
  * Responsibilities: Fetch availability, derive brand options and matching vehicles, and render
- *   request feedback and individual hourly rates.
+ *   request feedback, individual hourly rates and links to each vehicle's details.
  * Connections: Uses config/api, routes/paths and types/fleet; calls the backend fleet router and
- *   links back to Dashboard.
+ *   links back to Dashboard and generates VehicleDetails URLs using each vehicle identifier.
  */
 
 // --- Imports and cross-module dependencies ---

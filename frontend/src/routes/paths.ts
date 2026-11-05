@@ -1,10 +1,10 @@
 /**
  * File overview
  * Purpose: Keep page-navigation URLs in one typed location.
- * Responsibilities: Export literal route constants reused by route definitions, redirects and
- *   navigation callbacks.
- * Connections: App registers these paths; Login, Dashboard and Fleet navigate with the same
- *   constants.
+ * Responsibilities: Export literal paths and the vehicle-details pattern with its seriale
+ *   parameter for route matching and URL generation.
+ * Connections: App registers these paths; Login, Dashboard, Fleet and VehicleDetails share
+ *   navigation constants; Fleet uses generatePath to build each vehicle-details URL.
  */
 
 // --- Route definitions: use these values for both declarations and navigation callbacks. ---

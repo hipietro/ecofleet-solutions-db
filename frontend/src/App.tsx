@@ -2,9 +2,9 @@
  * File overview
  * Purpose: Define the client-side page routes for EcoFleet.
  * Responsibilities: Create BrowserRouter, redirect the home URL to login and map route constants
- *   to page components.
- * Connections: main.tsx renders App; routes/paths supplies URLs; Login, Dashboard and Fleet
- *   supply page content.
+ *   to page components, including the dynamic vehicle-details route.
+ * Connections: main.tsx renders App; routes/paths supplies URLs; Login, Dashboard, Fleet and
+ *   VehicleDetails supply page content.
  */
 
 // --- Imports and cross-module dependencies ---

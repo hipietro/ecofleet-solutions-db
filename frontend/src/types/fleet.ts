@@ -3,8 +3,8 @@
  * Purpose: Describe the vehicle and rental payloads used by React pages.
  * Responsibilities: Give compile-time types to API data, including nullable details and Decimal
  *   values serialized as strings.
- * Connections: Mirrors backend/app/schemas/fleet.py and rentals.py; Fleet and Dashboard consume
- *   these interfaces.
+ * Connections: Mirrors backend/app/schemas/fleet.py and rentals.py; Fleet, VehicleDetails and
+ *   Dashboard consume these interfaces.
  */
 
 // --- Vehicle contract: fields returned by fleet endpoints and nested in rental-history records. ---

@@ -1,10 +1,11 @@
 /**
  * File overview
  * Purpose: Display the authenticated customer rental history.
- * Responsibilities: Read the token, fetch personal rentals, handle expired sessions and expose
+ * Responsibilities: Read the token, fetch personal rentals, handle expired sessions, render
+ *   rental status, start/end timestamps, final costs and nested vehicle information, and expose
  *   logout and fleet navigation.
  * Connections: Uses config/api, routes/paths and types/fleet; calls the backend rentals router
- *   and links to Login and Fleet.
+ *   for customer history and current battery data, and links to Login and Fleet.
  */
 
 // --- Imports and cross-module dependencies ---
@@ -135,10 +136,37 @@ export default function Dashboard() {
               </span>
             </div>
 
-            {/* Rental metadata: tolerate missing battery values and format the start timestamp for display. */}
-            <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
-              <span>Batteria: {rental.veicolo_dettagli?.livello_batteria != null ? `${rental.veicolo_dettagli.livello_batteria}%` : '—'}</span>
-              <span>Inizio: {new Date(rental.dataorainizio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            {/* Rental metadata: show full timestamps and distinguish final costs from active rentals */}
+            <div className="mt-3 pt-3 border-t border-slate-100 pt-3 text-sm text-slate-600">
+              <p>
+                Inizio: {new Date(rental.dataorainizio).toLocaleString('it-IT')}
+              </p>
+              
+              {/*completion timestamp: active rentals have no end date yet. */}
+              {rental.dataorafine && (
+                <p className='mt-1'>
+                  Fine: {new Date(rental.dataorafine).toLocaleString('it-IT')}
+                </p>
+              )}
+
+              {/*final price: preserve zero amounts and handle missing values explicitily */}
+              <p className='mt-2 font-semibold text-slate-800'>
+                Costo totale: {rental.costo_totale != null ? Number(rental.costo_totale).toLocaleString('it-IT', {style: 'currency', currency: 'EUR',})
+                  :rental.stato==='attivo'
+                  ?'Calcolato al termine del noleggio'
+                  :'Non disponibile'
+                }
+              </p>
+
+              {/* Current battery: this value describes the vehicle now, not its historical charge. */}
+              <p className="mt-2 text-xs text-slate-500">
+                Batteria attuale: {
+                  rental.veicolo_dettagli?.livello_batteria != null
+                    ? `${rental.veicolo_dettagli.livello_batteria}%`
+                    : 'Non disponibile'
+                }
+              </p>
+          
             </div>
           </div>
         ))}

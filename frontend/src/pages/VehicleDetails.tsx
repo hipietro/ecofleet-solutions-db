@@ -2,7 +2,8 @@
  * File overview
  * Purpose: Display the details of a vehicle selected from Fleet.
  * Responsibilities: Load vehicle data when the URL identifier changes, handle loading, missing
- *   vehicles and request errors, cancel obsolete requests and render identity, status and pricing.
+ *   vehicles and request errors, cancel obsolete requests and render identity, status, mileage
+ *   and hourly pricing.
  * Connections: App registers the dynamic route; Fleet generates vehicle-specific links;
  *   routes/paths supplies navigation paths; config/api supplies the API base URL; types/fleet
  *   describes the response from the backend fleet detail endpoint.
@@ -97,7 +98,7 @@ export default function VehicleDetails(){
 
             {/*request feedback: show loading progress or an acessible error message */}
             {isLoading && (
-                <p className='mt-6 test-slate-500'>
+                <p className='mt-6 text-slate-500'>
                     Caricamento dettagli...
                 </p>
             )}

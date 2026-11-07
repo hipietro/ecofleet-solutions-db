@@ -2,8 +2,8 @@
 # Purpose: Define account, authentication and virtual-wallet API contracts.
 # Responsibilities: Validate registration/password limits and describe login, profile, top-up
 #   and payment-method payloads.
-# Connections: Imported by api/routes/auth; the frontend Login and Dashboard consume the
-#   corresponding responses.
+# Connections: Imported by api/routes/auth; frontend Login consumes the token response and
+#   Profile uses the account contract mirrored by frontend/src/types/auth.ts.
 
 # --- Imports and module dependencies ---
 from decimal import Decimal

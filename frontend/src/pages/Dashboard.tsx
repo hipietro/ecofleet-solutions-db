@@ -3,9 +3,9 @@
  * Purpose: Display the authenticated customer rental history.
  * Responsibilities: Read the token, fetch personal rentals, handle expired sessions, render
  *   rental status, start/end timestamps, final costs and nested vehicle information, and expose
- *   logout and fleet navigation.
+ *   logout, fleet navigation and profile navigation.
  * Connections: Uses config/api, routes/paths and types/fleet; calls the backend rentals router
- *   for customer history and current battery data, and links to Login and Fleet.
+ *   for customer history and current battery data, and links to Login, Fleet and Profile.
  */
 
 // --- Imports and cross-module dependencies ---
@@ -172,7 +172,7 @@ export default function Dashboard() {
         ))}
       </main>
 
-      {/* Bottom navigation: the Fleet button is active; the profile button is currently a placeholder. */}
+      {/* Bottom navigation: open Fleet or Profile and identify the current rentals page. */}
       <nav className="fixed bottom-0 w-full bg-white border-t border-slate-200 p-3 pb-safe flex justify-around items-center shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-10">
         <button
           onClick={()=>navigate(ROUTES.FLEET)}
@@ -186,9 +186,12 @@ export default function Dashboard() {
           <span className="text-[10px] font-semibold">Noleggi</span>
         </button>
         
-        <button className="flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors">
-          <span className="text-2xl mb-1">👤</span>
-          <span className="text-[10px] font-semibold">Profilo</span>
+        <button
+          onClick={()=>navigate(ROUTES.PROFILE)}
+          className="flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors"
+          >
+            <span className="text-2xl mb-1">👤</span>
+            <span className="text-[10px] font-semibold">Profilo</span>
         </button>
       </nav>
 

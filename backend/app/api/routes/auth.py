@@ -2,8 +2,8 @@
 # Purpose: Handle individual accounts, login, profiles and virtual-wallet operations.
 # Responsibilities: Validate request schemas, persist account data, issue access tokens and
 #   update virtual credit.
-# Connections: Uses schemas/auth, core/security, api/dependencies and db/connection; Login and
-#   Dashboard call these routes.
+# Connections: Uses schemas/auth, core/security, api/dependencies and db/connection; Login
+#   calls the login endpoint and Profile reads authenticated account details and credit.
 
 # --- Imports and module dependencies ---
 import psycopg.errors

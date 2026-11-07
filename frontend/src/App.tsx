@@ -3,8 +3,8 @@
  * Purpose: Define the client-side page routes for EcoFleet.
  * Responsibilities: Create BrowserRouter, redirect the home URL to login and map route constants
  *   to page components, including the dynamic vehicle-details route.
- * Connections: main.tsx renders App; routes/paths supplies URLs; Login, Dashboard, Fleet and
- *   VehicleDetails supply page content.
+ * Connections: main.tsx renders App; routes/paths supplies URLs; Login, Dashboard, Fleet,
+ *   VehicleDetails and Profile supply page content.
  */
 
 // --- Imports and cross-module dependencies ---
@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard'
 import { ROUTES } from './routes/paths'
 import Fleet from './pages/Fleet'
 import VehicleDetails from './pages/VehicleDetails'
+import Profile from './pages/Profile'
 
 // --- Application router: resolve browser URLs to the page components below. ---
 function App() {
@@ -30,6 +31,7 @@ function App() {
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path={ROUTES.FLEET} element={<Fleet />} />
         <Route path={ROUTES.VEHICLE_DETAILS} element={<VehicleDetails />} />
+        <Route path={ROUTES.PROFILE} element={<Profile />} />
       </Routes>
     </BrowserRouter>
   )

@@ -110,9 +110,9 @@ export default function Profile(){
 
             const data: WalletTopupResponse = await response.json()
 
-            // --- Balance update: preserve account fields and normalize the response type. ---
+            // --- Balance update: preserve account fields and use the server-provided balance. ---
             setProfile((current) => current
-                ? { ...current, saldo_crediti: String(data.nuovo_saldo) }
+                ? { ...current, saldo_crediti: data.nuovo_saldo }
                 : current
             )
 

@@ -3,7 +3,7 @@
 # Responsibilities: Validate request schemas, persist account data, issue access tokens and
 #   update virtual credit.
 # Connections: Uses schemas/auth, core/security, api/dependencies and db/connection; Login
-#   calls the login endpoint and Profile reads authenticated account details and credit.
+#   calls the login endpoint; Profile reads account details and requests virtual-wallet top-ups.
 
 # --- Imports and module dependencies ---
 import psycopg.errors
@@ -101,7 +101,7 @@ def get_user_profile(current_user: dict = Depends(get_current_user)):
 
 
 # --- Add validated positive virtual credit and return the updated balance. ---
-@router.post("/api/auth/wallet/topup", tags=["Auth"])
+@router.post("/api/auth/wallet/topup",response_model=schemas.WalletTopupResponse,tags=["Auth"],)
 def topup_wallet(data: schemas.WalletTopup, current_user: dict = Depends(get_current_user)):
     """Add virtual credit to the authenticated user's wallet."""
     with get_db_connection() as conn:

@@ -1,9 +1,9 @@
 /**
  * File overview
  * Purpose: Describe authenticated account data used by the customer interface.
- * Responsibilities: Describe the profile's string-serialized credit and payment-method flag,
- *   and the wallet endpoint's numeric balance response.
- * Connections: Mirrors schemas/auth.py for profiles and api/routes/auth.py for top-ups;
+ * Responsibilities: Describe account and wallet responses using decimal strings for balances,
+ *   together with the profile's payment-method flag.
+ * Connections: Mirrors the profile and wallet response models in schemas/auth.py;
  *   Profile consumes GET /api/auth/me and POST /api/auth/wallet/topup.
  */
 
@@ -16,8 +16,8 @@ export interface UserProfile{
     has_payment_method: boolean
 }
 
-//---top-up result: the endpoint returns a message and the updated numeric balance.---
+// --- Top-up result: return a message and the updated balance as a decimal string. ---
 export interface WalletTopupResponse{
     message: string
-    nuovo_saldo: number
+    nuovo_saldo: string
 }

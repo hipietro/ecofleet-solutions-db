@@ -1,9 +1,9 @@
 # File overview
 # Purpose: Define account, authentication and virtual-wallet API contracts.
-# Responsibilities: Validate registration/password limits and describe login, profile, top-up
-#   and payment-method payloads.
+# Responsibilities: Validate registration/password limits and define account, wallet and
+#   payment-method contracts, with Decimal amounts serialized as JSON strings in responses.
 # Connections: Imported by api/routes/auth; frontend Login consumes the token response and
-#   Profile uses the account contract mirrored by frontend/src/types/auth.ts.
+#   Profile uses account and wallet contracts mirrored by frontend/src/types/auth.ts.
 
 # --- Imports and module dependencies ---
 from decimal import Decimal
@@ -48,6 +48,11 @@ class TokenResponse(BaseModel):
 # --- Positive virtual-credit input with bounded decimal precision. ---
 class WalletTopup(BaseModel):
     importo: Decimal = Field(..., gt=0, max_digits=6, decimal_places=2, description="amount to add to a wallet")
+
+# --- top-up output: serialize the updated Decimal balance consistently with the profile.---
+class WalletTopupResponse(BaseModel):
+    message: str
+    nuovo_saldo: Decimal
 
 
 # --- Simulated payment-method input; this identifier does not authorize a real charge. ---

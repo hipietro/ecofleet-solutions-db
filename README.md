@@ -192,12 +192,15 @@ These commands assume host `localhost` and user `postgres`; adjust them to match
 createdb -h localhost -U postgres ecofleet
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/ecofleet.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/001_api_stabilization.sql
+psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/002_charging_station_locations.sql
 ```
 
 > [!IMPORTANT]
 > `sql/ecofleet.sql` recreates the tables and deletes existing data. For a database already in use, apply only the required migration without rerunning the initialization script.
 
 The academic sample data does not provide accounts with predefined login credentials. To try the login flow, register a new user through the API.
+
+Apply migration `002` once per database. Station names, addresses and coordinates remain unset until verified location data is supplied.
 
 ### 4. Start the backend
 
@@ -242,6 +245,7 @@ Swagger UI lets you explore and try the endpoints. Login uses an OAuth2 form: **
 | `POST` | `/api/auth/payment-method` | Associate a payment method identifier | Authenticated |
 | `GET` | `/api/fleet/vehicles` | Vehicle list; `stato` and `marca` filters | Public |
 | `GET` | `/api/fleet/vehicles/{seriale}` | Vehicle details | Public |
+| `GET` | `/api/fleet/stations` | Charging stations with city and optional location details | Public |
 | `POST` | `/api/rentals/start` | Start a rental | Authenticated |
 | `POST` | `/api/rentals/stop` | End a rental | Authenticated |
 | `GET` | `/api/rentals/me` | Personal rental history | Authenticated |

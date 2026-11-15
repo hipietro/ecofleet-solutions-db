@@ -1,9 +1,9 @@
 # File overview
-# Purpose: Describe the public vehicle payloads returned by the API.
-# Responsibilities: Declare identifiers, status, mileage, individual hourly pricing and optional
-#   battery information.
-# Connections: Used by api/routes/fleet and schemas/rentals; mirrored by
-#   frontend/src/types/fleet.ts.
+# Purpose: Describe public vehicle and charging-station payloads returned by the API.
+# Responsibilities: Declare vehicle details and pricing, plus station identity, city, address
+#   and optional geographic coordinates.
+# Connections: api/routes/fleet uses these response models; schemas/rentals reuses VehicleResponse;
+#   frontend/src/types/fleet.ts mirrors the vehicle contract.
 
 # --- Imports and module dependencies ---
 from decimal import Decimal
@@ -26,3 +26,14 @@ class VehicleResponse(BaseModel):
 class VehicleDetailResponse(VehicleResponse):
     #made for future, so we can add more specific fields later (ex. battery levels, hub location...)
     pass
+
+
+#--- station contract: preserve unknown details and coordinates as null
+class ChargingStationResponse(BaseModel):
+    codicehub: int
+    numerostazione: int
+    citta: str
+    nome: str | None = None
+    indirizzo: str | None = None
+    latitudine: float | None = None
+    longitudine: float | None = None

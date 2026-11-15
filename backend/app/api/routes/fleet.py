@@ -1,9 +1,10 @@
 # File overview
-# Purpose: Expose public vehicle-list and vehicle-detail endpoints.
-# Responsibilities: Apply optional filters, retrieve each vehicle rate through PostgreSQL and
-#   return vehicle schemas.
+# Purpose: Expose public vehicle and charging-station endpoints.
+# Responsibilities: Filter vehicles, retrieve individual rates and list station locations with
+#   the city supplied by their parent hub.
 # Connections: Uses schemas/fleet and db/connection; the React Fleet page consumes the
-#   available-vehicle list and VehicleDetails consumes the individual vehicle response.
+#   available-vehicle list and VehicleDetails consumes the individual vehicle response. Station
+#   locations come from migration 002 and support the planned nearby-vehicle search.
 
 # --- Imports and module dependencies ---
 from typing import List
@@ -68,3 +69,32 @@ def get_vehicle_by_id(seriale: int):
                 raise HTTPException(status_code=404, detail="Veicolo non trovato.")
             
             return veicolo
+
+
+#stations listing: combine each station's location with its hub's city---
+@router.get(
+    "/api/fleet/stations",
+    response_model=List[schemas.ChargingStationResponse],
+    tags=["Fleet"],
+)
+def list_stations():
+    """return charging stations ordered by their composite identifier."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            #the city belongs to the hub, but the station coordinates and address belong to the stations table
+            cur.execute("""
+                SELECT
+                    s.codicehub,
+                    s.numerostazione,
+                    h.citta,
+                    s.nome,
+                    s.indirizzo,
+                    s.latitudine,
+                    s.longitudine
+                FROM StazioneRicarica AS s
+                JOIN HubLogistico AS h
+                    ON h.codicehub = s.codicehub
+                ORDER BY s.codicehub, s.numerostazione;
+            """)
+
+            return cur.fetchall()

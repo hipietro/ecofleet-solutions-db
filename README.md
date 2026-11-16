@@ -247,6 +247,7 @@ Swagger UI lets you explore and try the endpoints. Login uses an OAuth2 form: **
 | `GET` | `/api/fleet/vehicles` | Vehicle list; `stato` and `marca` filters | Public |
 | `GET` | `/api/fleet/vehicles/{seriale}` | Vehicle details | Public |
 | `GET` | `/api/fleet/stations` | Charging stations with city and optional location details | Public |
+| `GET` | `/api/fleet/stations/{codicehub}/{numerostazione}/access-points` | Station slots with recorded occupancy; unknown points remain unverified | Public |
 | `POST` | `/api/rentals/start` | Start a rental | Authenticated |
 | `POST` | `/api/rentals/stop` | End a rental | Authenticated |
 | `GET` | `/api/rentals/me` | Personal rental history | Authenticated |

@@ -1,13 +1,14 @@
 # File overview
-# Purpose: Describe public vehicle and charging-station payloads returned by the API.
-# Responsibilities: Declare vehicle details and pricing, plus station identity, city, address
-#   and optional geographic coordinates.
+# Purpose: Describe public vehicle, charging-station and access-point payloads returned by the API.
+# Responsibilities: Declare vehicle details, station locations and access-point occupancy,
+#   preserving the distinction between unknown, free and occupied points.
 # Connections: api/routes/fleet uses these response models; schemas/rentals reuses VehicleResponse;
 #   frontend/src/types/fleet.ts mirrors the vehicle contract.
 
 # --- Imports and module dependencies ---
 from decimal import Decimal
 from pydantic import BaseModel, Field
+from typing import Literal
 
 
 # --- Shared vehicle contract; Decimal prices serialize as strings and battery data may be missing. ---
@@ -37,3 +38,13 @@ class ChargingStationResponse(BaseModel):
     indirizzo: str | None = None
     latitudine: float | None = None
     longitudine: float | None = None
+
+
+#--- access point contract: distinguish recorded occupancy from missing information.---
+class ChargingAccessPointResponse(BaseModel):
+    codicehub: int
+    numerostazione: int
+    numeropunto: int
+    tipoconnettore: str
+    veicolo: int | None = None
+    stato_occupazione: Literal["non_verificato", "libero", "occupato"]#literal is used to explicit the contract by making possible only those 3 values

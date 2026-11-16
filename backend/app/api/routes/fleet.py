@@ -1,10 +1,10 @@
 # File overview
-# Purpose: Expose public vehicle and charging-station endpoints.
-# Responsibilities: Filter vehicles, retrieve individual rates and list station locations with
-#   the city supplied by their parent hub.
+# Purpose: Expose public vehicle, charging-station and access-point endpoints.
+# Responsibilities: Filter vehicles, retrieve rates, list station locations and describe
+#   recorded point occupancy without treating unknown points as free.
 # Connections: Uses schemas/fleet and db/connection; the React Fleet page consumes the
 #   available-vehicle list and VehicleDetails consumes the individual vehicle response. Station
-#   locations come from migration 002 and support the planned nearby-vehicle search.
+#   locations come from migration 002; migration 003 supplies recorded access-point occupancy.
 
 # --- Imports and module dependencies ---
 from typing import List
@@ -96,5 +96,50 @@ def list_stations():
                     ON h.codicehub = s.codicehub
                 ORDER BY s.codicehub, s.numerostazione;
             """)
+
+            return cur.fetchall()
+
+#access points: list the recorded occupancy of one station's slots.---
+@router.get(
+    "/api/fleet/stations/{codicehub}/{numerostazione}/access-points",
+    response_model=List[schemas.ChargingAccessPointResponse],
+    tags=["Fleet"],
+)
+def list_access_points(codicehub: int, numerostazione: int):
+    """return a station's access points, or reject an unknown station."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            #check the station separately so a missing station returns HTTP 404.
+            cur.execute(
+                """
+                SELECT 1 FROM StazioneRicarica
+                WHERE codicehub = %s AND numerostazione = %s;
+                """,
+                (codicehub, numerostazione),
+            )
+
+            if cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Stazione non trovata.")
+
+            #derive occupancy without interpreting unverified points as free.
+            cur.execute(
+                """
+                SELECT
+                    codicehub,
+                    numerostazione,
+                    numeropunto,
+                    tipoconnettore,
+                    veicolo,
+                    CASE
+                        WHEN NOT occupazione_verificata THEN 'non_verificato'
+                        WHEN veicolo IS NULL THEN 'libero'
+                        ELSE 'occupato'
+                    END AS stato_occupazione
+                FROM PuntoAccesso
+                WHERE codicehub = %s AND numerostazione = %s
+                ORDER BY numeropunto;
+                """,
+                (codicehub, numerostazione),
+            )
 
             return cur.fetchall()

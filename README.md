@@ -193,6 +193,7 @@ createdb -h localhost -U postgres ecofleet
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/ecofleet.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/001_api_stabilization.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/002_charging_station_locations.sql
+psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/003_access_point_occupancy.sql
 ```
 
 > [!IMPORTANT]
@@ -200,7 +201,7 @@ psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/0
 
 The academic sample data does not provide accounts with predefined login credentials. To try the login flow, register a new user through the API.
 
-Apply migration `002` once per database. Station names, addresses and coordinates remain unset until verified location data is supplied.
+Apply migrations `002` and `003` once per database, in order. Station locations remain unset until verified data is supplied. Existing access points start with unknown occupancy; an unassigned point is not automatically known to be free.
 
 ### 4. Start the backend
 

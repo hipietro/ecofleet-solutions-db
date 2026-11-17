@@ -204,6 +204,14 @@ The academic sample data does not provide accounts with predefined login credent
 
 Apply migrations `002`, `003` and `004` once per database, in order. Station locations remain unset until verified data is supplied. Existing access points start with unknown occupancy and technical operability; an unassigned point is not automatically known to be free or functional.
 
+For an optional development-only example, run the following seed once after all migrations:
+
+```bash
+psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/seeds/001_demo_station_inventory.sql
+```
+
+It creates a dedicated DEMO vehicle, hub and two stations: an occupied departure slot and a free return slot. Existing inventory is left unchanged. Locations and technical conditions are fictional; this is not GPS telemetry. The script prints the generated hub/vehicle identifiers and rejects repeat execution when its DEMO vehicle already exists.
+
 ### 4. Start the backend
 
 From the repository root, with the virtual environment active:

@@ -1,10 +1,10 @@
 # File overview
 # Purpose: Expose public vehicle, charging-station and access-point endpoints.
-# Responsibilities: Filter vehicles, retrieve rates, list station locations and describe
-#   recorded point occupancy without treating unknown points as free.
+# Responsibilities: Filter vehicles, retrieve rates, list station locations and expose recorded
+#   occupancy and technical operability without treating unknown points as available.
 # Connections: Uses schemas/fleet and db/connection; the React Fleet page consumes the
 #   available-vehicle list and VehicleDetails consumes the individual vehicle response. Station
-#   locations come from migration 002; migration 003 supplies recorded access-point occupancy.
+#   locations come from migration 002; migrations 003 and 004 supply occupancy and operability.
 
 # --- Imports and module dependencies ---
 from typing import List
@@ -130,6 +130,9 @@ def list_access_points(codicehub: int, numerostazione: int):
                     numeropunto,
                     tipoconnettore,
                     veicolo,
+                    tipoconnettore,
+                    veicolo,
+                    operativo,
                     CASE
                         WHEN NOT occupazione_verificata THEN 'non_verificato'
                         WHEN veicolo IS NULL THEN 'libero'

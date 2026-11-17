@@ -1,7 +1,7 @@
 # File overview
 # Purpose: Describe public vehicle, charging-station and access-point payloads returned by the API.
-# Responsibilities: Declare vehicle details, station locations and access-point occupancy,
-#   preserving the distinction between unknown, free and occupied points.
+# Responsibilities: Declare vehicle details, station locations, access-point occupancy and
+#   nullable technical operability, preserving unknown values rather than inventing availability.
 # Connections: api/routes/fleet uses these response models; schemas/rentals reuses VehicleResponse;
 #   frontend/src/types/fleet.ts mirrors the vehicle contract.
 
@@ -48,3 +48,4 @@ class ChargingAccessPointResponse(BaseModel):
     tipoconnettore: str
     veicolo: int | None = None
     stato_occupazione: Literal["non_verificato", "libero", "occupato"]#literal is used to explicit the contract by making possible only those 3 values
+    operativo: bool | None = None

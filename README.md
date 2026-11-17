@@ -194,6 +194,7 @@ psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/ecofleet.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/001_api_stabilization.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/002_charging_station_locations.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/003_access_point_occupancy.sql
+psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/004_access_point_operability.sql
 ```
 
 > [!IMPORTANT]
@@ -201,7 +202,7 @@ psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/0
 
 The academic sample data does not provide accounts with predefined login credentials. To try the login flow, register a new user through the API.
 
-Apply migrations `002` and `003` once per database, in order. Station locations remain unset until verified data is supplied. Existing access points start with unknown occupancy; an unassigned point is not automatically known to be free.
+Apply migrations `002`, `003` and `004` once per database, in order. Station locations remain unset until verified data is supplied. Existing access points start with unknown occupancy and technical operability; an unassigned point is not automatically known to be free or functional.
 
 ### 4. Start the backend
 
@@ -247,7 +248,7 @@ Swagger UI lets you explore and try the endpoints. Login uses an OAuth2 form: **
 | `GET` | `/api/fleet/vehicles` | Vehicle list; `stato` and `marca` filters | Public |
 | `GET` | `/api/fleet/vehicles/{seriale}` | Vehicle details | Public |
 | `GET` | `/api/fleet/stations` | Charging stations with city and optional location details | Public |
-| `GET` | `/api/fleet/stations/{codicehub}/{numerostazione}/access-points` | Station slots with recorded occupancy; unknown points remain unverified | Public |
+| `GET` | `/api/fleet/stations/{codicehub}/{numerostazione}/access-points` | Station slots with recorded occupancy and nullable technical operability | Public |
 | `POST` | `/api/rentals/start` | Start a rental | Authenticated |
 | `POST` | `/api/rentals/stop` | End a rental | Authenticated |
 | `GET` | `/api/rentals/me` | Personal rental history | Authenticated |

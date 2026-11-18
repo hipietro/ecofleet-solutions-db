@@ -2,7 +2,7 @@
 File overview
 Purpose: Introduce EcoFleet and provide the repository's primary setup and feature reference.
 Responsibilities: Describe current functionality, architecture, configuration, API usage, checks and roadmap.
-Connections: Links backend/frontend setup to SQL migrations, source-code guides and the academic documentation.
+Connections: Links backend/frontend setup to SQL migrations, design guides, the GitHub roadmap and the academic documentation.
 -->
 <div align="center">
 
@@ -46,10 +46,10 @@ It is also a practical learning project: connecting an interface to an API, hand
 
 | Area | Available functionality | Web interface |
 | :--- | :--- | :--- |
-| 🔐 Accounts | Individual and corporate registration, JWT login, profiles and role checks | Login and dashboard access |
-| 🚗 Fleet | Vehicle lists and details, brand and status filters, individual vehicle pricing | Search and map planned |
+| 🔐 Accounts | Individual and corporate registration, JWT login, profiles and role checks | Login and customer profile |
+| 🚗 Fleet | Vehicle lists and details, brand and status filters, individual vehicle pricing, station and access-point APIs | Vehicle list and details with a brand filter. Nearby search and maps are planned |
 | ⏱️ Rentals | Start, stop, personal history and checks on credit, battery and availability | Rental history display |
-| 💳 Wallet | Virtual balance, top-ups and simulated payment method association | Wallet page planned |
+| 💳 Wallet | Virtual balance, top-ups and simulated payment method association | Balance and virtual top-ups in the profile |
 | 🏢 Corporate | Company records, associated employees and contractual discount tiers | Dedicated dashboard planned |
 | 🔧 Maintenance | Maintenance logging and vehicle status updates | Backoffice interface planned |
 | 📊 Analytics | Total and per-vehicle revenue, average cost, standard deviation and Excel export | Analytics dashboard planned |
@@ -112,6 +112,12 @@ final cost = round((€1 unlock fee + minutes × hourly rate / 60) × contract f
 Starting a rental requires at least **€5 in credit**, a battery level of at least **15%**, an available vehicle and a compatible access point. A customer and a vehicle can each have only one active rental.
 
 At the end of a rental, the cost, receipt, balance, mileage and vehicle status are updated in a single transaction. If credit is insufficient, the operation is rolled back and the rental remains active until the wallet is topped up. Row locks and unique indexes protect against concurrent requests and duplicate charges.
+
+### Planned car returns
+
+The current API requires a station access point at pickup and return. The next design adds eligible street parking as a second way to return and subsequently pick up an electric car. For station returns, the charger will confirm that the car is connected to the selected access point. The development demo will simulate that confirmation. The working design gives a **10% station-return bonus** after any corporate discount. Street returns follow the normal rental price, including any applicable corporate discount.
+
+See the [customer and fleet specification](docs/ritiro_riconsegna_auto.md) and the [technical design](docs/progettazione_noleggio_ibrido.md) for the rules, decisions still open, and implementation order.
 
 ## Repository structure
 
@@ -314,6 +320,8 @@ The model uses general entities and specialization tables: for example, `Veicolo
 | [Source comments and configuration](docs/code_guide.md) | Comment conventions, module relationships and strict JSON configuration |
 | [Project structure](docs/struttura_progetto.md) | Code organization and module responsibilities |
 | [Backend stabilization](docs/stabilizzazione_backend.md) | Pricing, transactions and integration tests |
+| [Car pickup and return specification](docs/ritiro_riconsegna_auto.md) | Station and street workflows, return bonus, map behavior and customer scenarios |
+| [Hybrid rental technical design](docs/progettazione_noleggio_ibrido.md) | Current limitations, proposed database and API contracts, simulation and phased implementation |
 | [C client](legacy/c/README.txt) | Building and running the original program |
 | [SQL migrations](sql/migrations/) | Schema evolution for the web application |
 
@@ -326,13 +334,14 @@ The report and diagram describe the academic foundation; subsequent API extensio
 - [x] Analytics with pandas and NumPy, plus Excel export.
 - [x] React login, rental history dashboard and backend integration.
 - [x] Integration tests and backend organization by responsibility.
-- [ ] Complete the customer journey: vehicle search, rental start/stop and wallet management through the UI.
+- [ ] Complete hybrid car rentals: find a car nearby, pick it up, return it at a station or in an eligible street location, and review the final price and receipt.
 - [ ] Build the manager and technician backoffice and analytics visualizations.
-- [ ] Centralize frontend routes and consolidate state management.
+- [x] Centralize frontend routes.
+- [ ] Extract shared frontend behavior after the customer flows are stable.
 - [ ] Introduce **Docker** and **Docker Compose** to run the frontend, backend and database reproducibly.
 - [ ] Explore **Kubernetes** with deployment manifests, services and application configuration.
 
-Tasks and details are tracked in the [repository issues](https://github.com/hipietro/ecofleet-solutions-db/issues).
+The [customer journey issue](https://github.com/hipietro/ecofleet-solutions-db/issues/6) tracks the order of work and links to the related milestones.
 
 ## Authors and academic background
 

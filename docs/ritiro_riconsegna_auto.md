@@ -82,6 +82,8 @@ Se la posizione è assente o il parcheggio non è ammesso, l’app spiega cosa m
 
 ## 7. Come presentare il prezzo
 
+Nella tariffazione ordinaria si paga ogni **minuto di utilizzo iniziato**, con un minimo di un minuto. Una corsa di 40 secondi vale un minuto fatturabile, una di 60 secondi vale ancora un minuto e una di 61 secondi ne vale due. Il riepilogo può mostrare sia il tempo trascorso sia i minuti fatturati, così l’arrotondamento è visibile.
+
 Il prezzo dipende ancora dal singolo veicolo. Il costo d’uso, l’eventuale tempo in pausa, lo sblocco e lo sconto corporate formano il prezzo della corsa secondo le condizioni approvate. Per il primo disegno del bonus partiamo da questa sequenza:
 
 1. Si calcola il costo della corsa secondo le regole applicabili.
@@ -98,6 +100,10 @@ Il prezzo dipende ancora dal singolo veicolo. Il costo d’uso, l’eventuale te
 
 La percentuale che il cliente vede durante la corsa deve corrispondere alla condizione applicata alla sua ricevuta, anche in caso di futuro cambio del listino. Il bonus può essere sperimentato osservando quante auto rientrano in stazione, quante restano con batteria bassa in strada e quanti interventi di recupero occorrono. Questi sono criteri di valutazione, da usare quando avremo dati.
 
+### Chiusura subito dopo lo sblocco
+
+Chi cambia idea appena salito può chiudere la corsa senza aver mosso l’auto. Con una riconsegna valida, questo caso fa eccezione alla tariffazione a minuti e si addebita solo lo sblocco. Restano da definire il tempo massimo per considerarla immediata, la prova che l’auto sia rimasta ferma e il trattamento degli sconti sul solo sblocco. Il valore di zero chilometri, da solo, è insufficiente per riconoscere il caso perché la distanza attuale si registra in chilometri interi.
+
 ## 8. Conseguenze per chi gestisce la flotta
 
 Il gestore vede la distinzione tra veicoli in uso, veicoli parcheggiati in stazione e veicoli parcheggiati in strada. Un’auto con poca autonomia può richiedere recupero o ricarica prima di tornare visibile per il ritiro. Lo staff vede anche punti tecnicamente fuori servizio, occupazioni da verificare e restituzioni che richiedono assistenza.
@@ -111,6 +117,7 @@ La posizione usata per recuperare un veicolo è la posizione di parcheggio confe
 | Ritiro in stazione e riconsegna in un’altra | Il punto di partenza si libera, quello di arrivo riceve esattamente l’auto collegata e compare il bonus |
 | Riconsegna in strada in area ammessa | La corsa si chiude al prezzo applicabile e l’auto noleggiabile compare nel luogo di sosta |
 | Ritiro dell’auto lasciata in strada | Il nuovo cliente parte dalla posizione corrente e nello storico compare una partenza in strada |
+| Chiusura immediata con auto rimasta ferma | La restituzione valida conclude la corsa con 0 km e con il solo costo di sblocco |
 | Punto pieno, guasto, incompatibile o con conferma di un altro mezzo | L’app spiega il motivo e offre alternative applicabili |
 | Posizione vecchia, incerta o in zona esclusa | Viene mostrata la verifica mancante prima di confermare la chiusura |
 | Risposta persa o conferma ripetuta | Il cliente recupera l’esito dal server. Il saldo e la ricevuta riflettono un solo addebito |

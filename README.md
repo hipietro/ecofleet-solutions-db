@@ -202,6 +202,7 @@ psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/0
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/003_access_point_occupancy.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/004_access_point_operability.sql
 psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/005_rental_return_locations.sql
+psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/006_rental_pickup_locations.sql
 ```
 
 > [!IMPORTANT]
@@ -209,7 +210,7 @@ psql -h localhost -U postgres -d ecofleet -v ON_ERROR_STOP=1 -f sql/migrations/0
 
 The academic sample data does not provide accounts with predefined login credentials. To try the login flow, register a new user through the API.
 
-Apply migrations `002` through `005` once per database, in order. Station locations remain unset until verified data is supplied. Existing access points start with unknown occupancy and technical operability; an unassigned point is not automatically known to be free or functional. Migration `005` adds support for recording street return locations in rental history. The current API still requires a station access point.
+Apply migrations `002` through `006` once per database, in order. Station locations remain unset until verified data is supplied. Existing access points start with unknown occupancy and technical operability; an unassigned point is not automatically known to be free or functional. Migrations `005` and `006` add support for recording street return and pickup locations in rental history. The current API still requires a station access point.
 
 For an optional development-only example, run the following seed once after all migrations:
 
